@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>테스트</title>
+<style>
+body{font-family:sans-serif;padding:20px;background:#f0f2f5}
+.card{background:#fff;border-radius:12px;padding:20px;margin-bottom:12px;border:0.5px solid #ddd;cursor:pointer}
+.card:active{background:#E6F1FB}
+h2{color:#1F3864;margin-bottom:16px}
+#result{margin-top:20px;padding:12px;background:#E8F5E9;border-radius:8px;font-size:14px;display:none}
+</style>
+</head>
+<body>
+<h2>🔧 클릭 테스트</h2>
+<div class="card" onclick="clicked('정부장')">정부장</div>
+<div class="card" onclick="clicked('유부장')">유부장</div>
+<div class="card" onclick="clicked('조부장')">조부장</div>
+<div id="result"></div>
+<script>
+function clicked(name) {
+  var r = document.getElementById('result');
+  r.style.display = 'block';
+  r.textContent = '✅ ' + name + ' 클릭됨!';
+}
+</script>
+</body>
+</html>
