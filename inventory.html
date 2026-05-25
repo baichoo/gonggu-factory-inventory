@@ -110,6 +110,39 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Noto Sans KR',sans-serif;back
 .cam-manual-row button{padding:9px 14px;background:#4FC3F7;color:#111;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer}
 .toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:9px 18px;border-radius:20px;font-size:13px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
 .toast.show{opacity:1}
+/* 직원 대시보드 */
+.dash-pad{padding:12px 12px 0}
+.dash-totals{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
+.dtcard{background:#1F3864;border-radius:10px;padding:10px 8px;text-align:center}
+.dtval{font-size:20px;font-weight:700;color:#fff}
+.dtlbl{font-size:10px;color:rgba(255,255,255,.65);margin-top:2px}
+.staff-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.staff-card{background:#fff;border:0.5px solid #e0e0e0;border-radius:14px;padding:14px 12px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent}
+.staff-card:active{transform:scale(.97);background:#f8f9fa}
+.staff-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:14px 14px 0 0}
+.sc-0::before{background:#378ADD}.sc-1::before{background:#1D9E75}.sc-2::before{background:#EF9F27}
+.sc-3::before{background:#7F77DD}.sc-4::before{background:#D85A30}.sc-5::before{background:#0F6E56}.sc-6::before{background:#D4537E}
+.av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;margin-bottom:8px;flex-shrink:0}
+.av-0{background:#E6F1FB;color:#0C447C}.av-1{background:#EAF3DE;color:#27500A}.av-2{background:#FAEEDA;color:#633806}
+.av-3{background:#EEEDFE;color:#3C3489}.av-4{background:#FAECE7;color:#712B13}.av-5{background:#E1F5EE;color:#085041}.av-6{background:#FBEAF0;color:#72243E}
+.s-name{font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:2px}
+.s-sector{font-size:10px;color:#888;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.s-bar-bg{height:4px;background:#eee;border-radius:2px;margin-bottom:6px;overflow:hidden}
+.s-bar-fill{height:4px;border-radius:2px;transition:width .5s}
+.s-bottom{display:flex;justify-content:space-between;align-items:flex-end}
+.s-cnt{font-size:22px;font-weight:700;color:#1a1a1a;line-height:1}
+.s-lbl{font-size:10px;color:#888;margin-top:2px}
+.s-badge{font-size:9px;padding:2px 7px;border-radius:10px;font-weight:600;margin-bottom:2px}
+.sb-live{background:#E8F5E9;color:#1B5E20}
+.sb-idle{background:#F5F5F5;color:#888}
+.s-last{margin-top:8px;padding-top:7px;border-top:0.5px solid #f0f0f0;font-size:10px;color:#aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.s-last b{color:#555}
+/* 상세 목록 */
+.log-item{background:#fff;border-radius:8px;padding:10px 14px;margin-bottom:6px;box-shadow:0 1px 3px rgba(0,0,0,.06);transition:background .3s}
+.log-item.new-flash{background:#E8F5E9}
+.log-name{font-size:12px;font-weight:600;margin-bottom:3px}
+.log-meta{display:flex;flex-wrap:wrap;gap:7px;font-size:11px;color:#888}
+.log-meta b{color:#1F3864}
 </style>
 </head>
 <body>
@@ -163,10 +196,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Noto Sans KR',sans-serif;back
 </div>
 
 <div class="panel" id="tab-log">
-  <div style="padding:8px 14px;background:#E3F2FD;border-bottom:1px solid #BBDEFB;font-size:11px;color:#1565C0">
-    🔴 실시간 — 모든 직원이 입력하는 즉시 여기 표시됩니다
+  <div id="staffDash"></div>
+  <div id="staffDetail" style="display:none">
+    <div style="padding:8px 14px;border-bottom:1px solid #e0e0e0;display:flex;align-items:center;gap:8px">
+      <button onclick="closeDetail()" style="background:#1F3864;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer">← 뒤로</button>
+      <span id="detailTitle" style="font-size:14px;font-weight:600"></span>
+    </div>
+    <div class="log-list" id="logList"></div>
   </div>
-  <div class="log-list" id="logList"><div class="empty">데이터 로딩 중...</div></div>
 </div>
 
 <div class="panel" id="tab-stat">
@@ -518,10 +555,91 @@ async function saveItem(code,name,unit,sys,price,id){
 }
 
 // ── 실시간 목록 렌더 ──
+const STAFF_LIST = ['정부장','유부장','조부장','권과장','김대리','손대리','정실장'];
+const STAFF_COLORS = ['#378ADD','#1D9E75','#EF9F27','#7F77DD','#D85A30','#0F6E56','#D4537E'];
+let currentDetailWorker = null;
+
 function renderLog(){
+  renderStaffDash();
+  if(currentDetailWorker) renderDetailLog(currentDetailWorker);
+}
+
+function renderStaffDash(){
+  const dash = document.getElementById('staffDash');
+  if(!dash) return;
+
+  // 전체 집계
+  const totalItems = doneSet.size;
+  const totalRecords = allRecords.length;
+  const diffCount = allRecords.filter(r=>r.diff!==0).length;
+
+  // 직원별 집계
+  const byWorker = {};
+  STAFF_LIST.forEach(w => { byWorker[w]={count:0,items:new Set(),last:null,sector:''}; });
+  allRecords.forEach(r=>{
+    const w = r.worker||'기타';
+    if(!byWorker[w]) byWorker[w]={count:0,items:new Set(),last:null,sector:''};
+    byWorker[w].count++;
+    byWorker[w].items.add(r.code);
+    byWorker[w].sector = r.sector||'';
+    if(!byWorker[w].last || new Date(r.created_at) > new Date(byWorker[w].last.created_at)){
+      byWorker[w].last = r;
+    }
+  });
+
+  const maxCount = Math.max(1, ...Object.values(byWorker).map(v=>v.count));
+
+  let html = `<div class="dash-pad">
+    <div class="dash-totals">
+      <div class="dtcard"><div class="dtval">${totalRecords}</div><div class="dtlbl">총 입력건</div></div>
+      <div class="dtcard"><div class="dtval">${totalItems}</div><div class="dtlbl">완료 품목</div></div>
+      <div class="dtcard" style="background:#C62828"><div class="dtval">${diffCount}</div><div class="dtlbl">재고 차이</div></div>
+    </div>
+    <div class="staff-grid">`;
+
+  STAFF_LIST.forEach((worker, idx) => {
+    const d = byWorker[worker] || {count:0,items:new Set(),last:null,sector:''};
+    const pct = Math.round(d.count / maxCount * 100);
+    const isActive = d.count > 0;
+    const lastTxt = d.last ? `<b>${eh(d.last.name.substring(0,14))}</b> ${d.last.actual_qty}${d.last.unit||''}` : '입력 없음';
+
+    html += `<div class="staff-card sc-${idx}" onclick="openDetail('${worker}')">
+      <div class="av av-${idx}">${worker[0]}</div>
+      <div class="s-name">${worker}</div>
+      <div class="s-sector">${d.sector||'섹터 미지정'}</div>
+      <div class="s-bar-bg"><div class="s-bar-fill" style="width:${pct}%;background:${STAFF_COLORS[idx]}"></div></div>
+      <div class="s-bottom">
+        <div><div class="s-cnt">${d.count}</div><div class="s-lbl">입력건</div></div>
+        <span class="s-badge ${isActive?'sb-live':'sb-idle'}">${isActive?'작업중':'대기중'}</span>
+      </div>
+      <div class="s-last">최근: ${lastTxt}</div>
+    </div>`;
+  });
+
+  html += `</div></div>`;
+  dash.innerHTML = html;
+}
+
+function openDetail(worker){
+  currentDetailWorker = worker;
+  document.getElementById('staffDash').style.display='none';
+  document.getElementById('staffDetail').style.display='block';
+  document.getElementById('detailTitle').textContent = worker + ' 입력 내역';
+  renderDetailLog(worker);
+}
+
+function closeDetail(){
+  currentDetailWorker = null;
+  document.getElementById('staffDash').style.display='block';
+  document.getElementById('staffDetail').style.display='none';
+}
+
+function renderDetailLog(worker){
   const el=document.getElementById('logList');
-  if(!allRecords.length){el.innerHTML='<div class="empty">아직 입력된 항목이 없습니다</div>';return;}
-  el.innerHTML=allRecords.slice(0,200).map(r=>`
+  if(!el) return;
+  const recs = allRecords.filter(r=>r.worker===worker);
+  if(!recs.length){el.innerHTML='<div class="empty" style="padding:40px 20px;text-align:center;color:#bbb">아직 입력된 항목이 없습니다</div>';return;}
+  el.innerHTML=recs.map(r=>`
     <div class="log-item" data-id="${r.id}">
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div class="log-name">${eh(r.name)}</div>
@@ -532,10 +650,9 @@ function renderLog(){
       </div>
       <div class="log-meta">
         <span>📍<b>${r.sector||'-'}</b></span>
-        <span>👤<b>${r.worker||'-'}</b></span>
         <span>📦실사:<b style="color:#1F3864">${r.actual_qty}${r.unit||''}</b></span>
         <span style="${r.diff>0?'color:#2E7D32':r.diff<0?'color:#C62828':''}">차이:<b>${r.diff>=0?'+':''}${r.diff}</b></span>
-        ${r.new_barcode?`<span>📊바코드:<b>${r.new_barcode}</b></span>`:''}
+        ${r.new_barcode?`<span>📊<b>${r.new_barcode}</b></span>`:''}
         ${r.status&&r.status!=='정상'?`<span style="color:#C62828">[${r.status}]</span>`:''}
         ${r.memo?`<span>📝${r.memo}</span>`:''}
       </div>
