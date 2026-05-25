@@ -243,26 +243,30 @@ function ci(id){return document.getElementById(id);}
 (function(){var d=new Date();var dy=['일','월','화','수','목','금','토'];ci('hdate').textContent=d.getFullYear()+'년 '+(d.getMonth()+1)+'월 '+d.getDate()+'일 '+dy[d.getDay()]+'요일';})();
 
 // ITEMS 로드
-fetch('https://baichoo.github.io/gonggu-factory-inventory/items.json')
-.then(function(r){return r.json();})
-.then(function(data){
-  ITEMS=data;
-  ITEMS.forEach(function(it){
-    codeM[it.c]=it;
-    if(it.b&&it.b!=='nan') bcM[it.b]=it;
+var _base='https://baichoo.github.io/gonggu-factory-inventory/';
+var _parts=['items1.json','items2.json','items3.json','items4.json','items5.json'];
+function _loadPart(i){
+  if(i>=_parts.length){
+    ITEMS.forEach(function(it){codeM[it.c]=it;if(it.b&&it.b!=='nan')bcM[it.b]=it;});
+    ci('loading').style.display='none';
+    ci('app').style.display='block';
+    var who=localStorage.getItem('gf_who')||'';
+    var wi=STAFF.indexOf(who);
+    if(wi>=0) selStaff(who,wi);
+    loadR();
+    setInterval(loadR,5000);
+    return;
+  }
+  var ltxt=ci('loading').querySelector('div+div');
+  if(ltxt) ltxt.textContent='품목 로딩 중... ('+(i+1)+'/'+_parts.length+')';
+  fetch(_base+_parts[i])
+  .then(function(r){return r.json();})
+  .then(function(data){ITEMS=ITEMS.concat(data);_loadPart(i+1);})
+  .catch(function(e){
+    ci('loading').innerHTML='<div style="color:#fff;text-align:center;padding:20px;font-size:14px;">&#10060; 로드 실패<br><br><button onclick="location.reload()" style="padding:8px 20px;background:#fff;color:#1F3864;border:none;border-radius:8px;font-size:13px;cursor:pointer;">다시 시도</button></div>';
   });
-  ci('loading').style.display='none';
-  ci('app').style.display='block';
-  // 세션 복원
-  var who=localStorage.getItem('gf_who')||'';
-  var idx=STAFF.indexOf(who);
-  if(idx>=0) selStaff(who,idx);
-  // 데이터 로드
-  loadR();
-  setInterval(loadR,5000);
-}).catch(function(e){
-  ci('loading').innerHTML='<div style="color:#fff;text-align:center;padding:20px;"><div style="font-size:18px;margin-bottom:8px;">&#10060;</div><div>데이터 로드 실패</div><div style="font-size:11px;opacity:.7;margin-top:8px;">'+e+'</div><button onclick="location.reload()" style="margin-top:16px;padding:8px 20px;background:#fff;color:#1F3864;border:none;border-radius:8px;font-size:13px;cursor:pointer;">다시 시도</button></div>';
-});
+}
+_loadPart(0);
 
 // 탭
 function gTab(n){
@@ -363,7 +367,8 @@ function mkCard(it,done){
     +'<button class="bcam" onclick="openCam('r'+id+'')">&#128247;</button></div></div>'
     +'<button class="sbtn" onclick="doSave(this,''+it.c.replace(/'/g,"\'").substring(0,40)+'','
     +'''+it.n.replace(/'/g,"\'").replace(/[
-]/g,'').substring(0,40)+'','
+
+]/g,'').substring(0,40)+'','
     +'''+eh(it.u||'')+'','+it.s+','+it.p+',''+id+'')">저장 (실시간 공유)</button>'
     +'</div></div>';
 }
