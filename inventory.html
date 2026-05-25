@@ -162,37 +162,46 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Noto Sans KR',sans-serif;back
 </div>
 
 <div class="panel on" id="tab-search">
-  <div class="session-bar">
-    <div class="session-row">
-      <select class="session-sel" id="globalSec" onchange="onSecChange()">
+  <!-- 1단계: 직원 선택 -->
+  <div id="step1">
+    <div style="padding:12px 14px 6px;font-size:12px;color:#888;font-weight:500">담당자를 선택하세요</div>
+    <div id="staffSelectGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 12px 12px"></div>
+  </div>
+
+  <!-- 2단계: 섹터+검색 -->
+  <div id="step2" style="display:none">
+    <div style="padding:8px 12px 0">
+      <div onclick="goBackToStaff()" style="display:flex;align-items:center;gap:6px;font-size:12px;color:#378ADD;cursor:pointer;padding:6px 0;margin-bottom:6px">&#8592; 담당자 변경</div>
+      <div id="whoBadge" style="display:flex;align-items:center;gap:10px;background:#E6F1FB;border-radius:10px;padding:8px 12px;margin-bottom:10px">
+        <div id="whoAv" style="width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600"></div>
+        <div>
+          <div id="whoName" style="font-size:13px;font-weight:600;color:#0C447C"></div>
+          <div style="font-size:10px;color:#378ADD">담당자 선택됨 · 섹터를 선택하세요</div>
+        </div>
+      </div>
+      <select id="globalSec" onchange="onSecChange()" style="width:100%;margin-bottom:10px;padding:9px 12px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:13px;background:#fff;-webkit-appearance:none;outline:none">
         <option value="">📍 섹터 선택</option>
         <option value="1F-메인">1F-메인</option><option value="1F-실리콘">1F-실리콘</option><option value="1F-피스">1F-피스</option><option value="2F-201호">2F-201호</option><option value="2F-202호">2F-202호</option><option value="2F-203호">2F-203호</option><option value="3F-301호">3F-301호</option><option value="3F-주인세대">3F-주인세대</option><option value="건너편-2층">건너편-2층</option><option value="건너편-지하">건너편-지하</option><option value="건너편-레드툴">건너편-레드툴</option><option value="컨테이너">컨테이너</option><option value="기타">기타</option>
       </select>
-      <div class="session-divider">/</div>
-      <select class="session-sel" id="globalWho" onchange="onWhoChange()">
-        <option value="">👤 담당자</option>
-        <option value="정부장">정부장</option><option value="유부장">유부장</option><option value="조부장">조부장</option><option value="권과장">권과장</option><option value="김대리">김대리</option><option value="손대리">손대리</option><option value="정실장">정실장</option>
-      </select>
-      <div class="session-ready no" id="sessionBadge">선택필요</div>
     </div>
+    <div class="search-wrap" style="position:relative;top:0">
+      <div class="search-row">
+        <input class="search-box" id="mainSearch" type="search"
+          placeholder="섹터 선택 후 품목명 검색..."
+          autocomplete="off" autocorrect="off" spellcheck="false"
+          oninput="onSearch()" disabled>
+        <button class="btn-scan" id="scanBtn" onclick="openCam('search')" disabled>📷 스캔</button>
+      </div>
+      <div class="filter-row">
+        <span class="chip on" onclick="setFilter('all',this)">전체</span>
+        <span class="chip" onclick="setFilter('미실사',this)">미실사</span>
+        <span class="chip" onclick="setFilter('완료',this)">완료</span>
+        <span class="chip" onclick="setFilter('바코드없음',this)">바코드 미등록</span>
+      </div>
+    </div>
+    <div class="result-info" id="resultInfo">품목명을 입력하거나 📷 스캔하세요</div>
+    <div class="items-list" id="itemsList"></div>
   </div>
-  <div class="search-wrap">
-    <div class="search-row">
-      <input class="search-box" id="mainSearch" type="search"
-        placeholder="위에서 섹터·담당자를 먼저 선택하세요"
-        autocomplete="off" autocorrect="off" spellcheck="false"
-        oninput="onSearch()" disabled>
-      <button class="btn-scan" id="scanBtn" onclick="openCam('search')" disabled>📷</button>
-    </div>
-    <div class="filter-row">
-      <span class="chip on" onclick="setFilter('all',this)">전체</span>
-      <span class="chip" onclick="setFilter('미실사',this)">미실사</span>
-      <span class="chip" onclick="setFilter('완료',this)">완료</span>
-      <span class="chip" onclick="setFilter('바코드없음',this)">바코드 미등록</span>
-    </div>
-  </div>
-  <div class="result-info" id="resultInfo">섹터와 담당자를 선택하면 검색할 수 있습니다</div>
-  <div class="items-list" id="itemsList"></div>
 </div>
 
 <div class="panel" id="tab-log">
@@ -366,35 +375,77 @@ function flashNewItem(id){
 }
 
 // ── 세션 설정 ──
+const STAFF_AV_BG=['#E6F1FB','#EAF3DE','#FAEEDA','#EEEDFE','#FAECE7','#E1F5EE','#FBEAF0'];
+const STAFF_AV_TX=['#0C447C','#27500A','#633806','#3C3489','#712B13','#085041','#72243E'];
+const STAFF_COLORS=['#378ADD','#1D9E75','#EF9F27','#7F77DD','#D85A30','#0F6E56','#D4537E'];
+
+function buildStaffSelectGrid(){
+  const grid = document.getElementById('staffSelectGrid');
+  if(!grid) return;
+  grid.innerHTML = STAFF_LIST.map((name, idx) => {
+    const cnt = allRecords.filter(r=>r.worker===name).length;
+    return `<div onclick="selectStaff('${name}',${idx})"
+      style="background:#fff;border:0.5px solid #E8EDF4;border-radius:12px;padding:14px 12px;cursor:pointer;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:${STAFF_COLORS[idx]};border-radius:12px 12px 0 0"></div>
+      <div style="width:34px;height:34px;border-radius:50%;background:${STAFF_AV_BG[idx]};color:${STAFF_AV_TX[idx]};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;margin-bottom:8px">${name[0]}</div>
+      <div style="font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:2px">${name}</div>
+      <div style="font-size:10px;color:#aaa">오늘 ${cnt}건 입력</div>
+    </div>`;
+  }).join('');
+}
+
+function selectStaff(name, idx){
+  curWho = name;
+  localStorage.setItem('gf_who', name);
+  document.getElementById('step1').style.display='none';
+  document.getElementById('step2').style.display='block';
+  const av = document.getElementById('whoAv');
+  av.textContent = name[0];
+  av.style.background = STAFF_AV_BG[idx];
+  av.style.color = STAFF_AV_TX[idx];
+  document.getElementById('whoName').textContent = name;
+  // 이전 섹터 복원
+  const savedSec = localStorage.getItem('gf_sec')||'';
+  if(savedSec){
+    const sel = document.getElementById('globalSec');
+    if(sel){ sel.value = savedSec; curSec = savedSec; }
+    updateSearchState();
+  }
+}
+
+function goBackToStaff(){
+  curWho='';curSec='';
+  localStorage.removeItem('gf_who');
+  document.getElementById('step1').style.display='block';
+  document.getElementById('step2').style.display='none';
+  document.getElementById('mainSearch').value='';
+  document.getElementById('itemsList').innerHTML='';
+  buildStaffSelectGrid();
+}
+
 function onSecChange(){
   curSec = document.getElementById('globalSec').value;
   localStorage.setItem('gf_sec', curSec);
-  updateSessionUI();
+  updateSearchState();
 }
-function onWhoChange(){
-  curWho = document.getElementById('globalWho').value;
-  localStorage.setItem('gf_who', curWho);
-  updateSessionUI();
-}
-function updateSessionUI(){
-  const ready = curSec && curWho;
-  const badge = document.getElementById('sessionBadge');
+
+function updateSearchState(){
   const searchBox = document.getElementById('mainSearch');
   const scanBtn = document.getElementById('scanBtn');
-  if(ready){
-    badge.className='session-ready ok';badge.textContent='✓ 준비완료';
-    searchBox.disabled=false;scanBtn.disabled=false;
-    searchBox.placeholder=`품목명 검색... (${curSec} · ${curWho})`;
-    document.getElementById('globalSec').classList.add('set');
-    document.getElementById('globalWho').classList.add('set');
+  if(curSec && curWho){
+    searchBox.disabled=false; scanBtn.disabled=false;
+    searchBox.placeholder=`품목명 검색... (${curSec})`;
+    document.getElementById('globalSec').style.borderColor='#1F3864';
+    document.getElementById('globalSec').style.background='#EEF3FB';
+    document.getElementById('globalSec').style.color='#1F3864';
   } else {
-    badge.className='session-ready no';badge.textContent='선택필요';
-    searchBox.disabled=true;scanBtn.disabled=true;
-    searchBox.placeholder='위에서 섹터·담당자를 먼저 선택하세요';
-    document.getElementById('globalSec').classList.remove('set');
-    document.getElementById('globalWho').classList.remove('set');
+    searchBox.disabled=true; scanBtn.disabled=true;
+    searchBox.placeholder='섹터 선택 후 품목명 검색...';
   }
 }
+
+function onWhoChange(){}
+function updateSessionUI(){}
 
 // ── 탭 ──
 function switchTab(name,el){
@@ -561,6 +612,7 @@ let currentDetailWorker = null;
 
 function renderLog(){
   renderStaffDash();
+  buildStaffSelectGrid();
   if(currentDetailWorker) renderDetailLog(currentDetailWorker);
 }
 
