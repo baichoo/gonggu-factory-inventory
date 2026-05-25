@@ -6,113 +6,107 @@
 <title>공구팩토리 재고 파악</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Noto Sans KR',sans-serif;background:#0f1923;color:#e8eaf0;min-height:100vh}
-
-/* 헤더 */
-.header{background:linear-gradient(135deg,#1F3864,#2E75B6);padding:28px 24px 24px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.4)}
-.logo{font-size:28px;font-weight:800;color:#fff;letter-spacing:-1px;margin-bottom:4px}
-.logo span{color:#4FC3F7}
-.tagline{font-size:13px;color:rgba(255,255,255,.65);margin-bottom:16px}
-.date-badge{display:inline-block;background:rgba(255,255,255,.12);color:rgba(255,255,255,.8);padding:5px 14px;border-radius:20px;font-size:12px}
-
-/* 메뉴 그리드 */
-.menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:20px 16px}
-.menu-card{background:#1a2535;border:1px solid #2a3a50;border-radius:16px;padding:22px 16px;text-align:center;text-decoration:none;color:inherit;transition:all .2s;display:block;position:relative;overflow:hidden}
-.menu-card:active{transform:scale(.97)}
-.menu-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
-.menu-card.blue::before{background:linear-gradient(90deg,#2196F3,#4FC3F7)}
-.menu-card.green::before{background:linear-gradient(90deg,#4CAF50,#81C784)}
-.menu-card.orange::before{background:linear-gradient(90deg,#FF9800,#FFB74D)}
-.menu-card.purple::before{background:linear-gradient(90deg,#9C27B0,#CE93D8)}
-.menu-card.red::before{background:linear-gradient(90deg,#F44336,#EF9A9A)}
-.menu-card.teal::before{background:linear-gradient(90deg,#009688,#4DB6AC)}
-.menu-icon{font-size:36px;margin-bottom:10px;display:block}
-.menu-title{font-size:15px;font-weight:700;color:#fff;margin-bottom:4px}
-.menu-desc{font-size:11px;color:#8899aa;line-height:1.4}
-.menu-badge{position:absolute;top:10px;right:10px;font-size:9px;padding:2px 7px;border-radius:10px;font-weight:600}
-.badge-live{background:#E8F5E9;color:#2E7D32}
-.badge-soon{background:#FFF3E0;color:#E65100}
-
-/* 공지 배너 */
-.notice{margin:0 16px 16px;background:#1a2535;border:1px solid #2a3a50;border-left:4px solid #4FC3F7;border-radius:0 10px 10px 0;padding:12px 16px}
-.notice-title{font-size:12px;font-weight:700;color:#4FC3F7;margin-bottom:4px}
-.notice-body{font-size:12px;color:#8899aa;line-height:1.6}
-
-/* 푸터 */
-.footer{text-align:center;padding:20px;color:#445566;font-size:11px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Noto Sans KR',sans-serif;background:#F7F9FC;min-height:100vh;color:#1a1a1a}
+.hdr{background:#1F3864;padding:28px 20px 24px;text-align:center}
+.hdr-logo{font-size:26px;font-weight:700;color:#fff;letter-spacing:-0.5px;margin-bottom:4px}
+.hdr-logo span{color:#90CAF9}
+.hdr-sub{font-size:12px;color:rgba(255,255,255,.6);margin-bottom:12px}
+.hdr-date{display:inline-block;background:rgba(255,255,255,.15);color:rgba(255,255,255,.85);padding:4px 14px;border-radius:20px;font-size:11px}
+.notice{margin:16px 16px 0;background:#fff;border:0.5px solid #B5D4F4;border-left:3px solid #378ADD;border-radius:0 8px 8px 0;padding:10px 14px}
+.notice-t{font-size:11px;font-weight:600;color:#0C447C;margin-bottom:2px}
+.notice-b{font-size:11px;color:#185FA5;line-height:1.5}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px}
+.mcard{background:#fff;border:0.5px solid #E8EDF4;border-radius:14px;padding:20px 16px;text-align:center;cursor:pointer;text-decoration:none;color:inherit;display:block;position:relative;overflow:hidden;transition:border-color .15s;-webkit-tap-highlight-color:transparent}
+.mcard:hover{border-color:#B5D4F4}
+.mcard:active{transform:scale(.98)}
+.mcard::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;border-radius:0 0 14px 14px}
+.mc-blue::after{background:#378ADD}
+.mc-teal::after{background:#1D9E75}
+.mc-amber::after{background:#EF9F27}
+.mc-purple::after{background:#7F77DD}
+.mc-red::after{background:#E24B4A}
+.mc-gray::after{background:#888780}
+.ic-wrap{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:24px}
+.iw-blue{background:#E6F1FB;color:#185FA5}
+.iw-teal{background:#E1F5EE;color:#0F6E56}
+.iw-amber{background:#FAEEDA;color:#854F0B}
+.iw-purple{background:#EEEDFE;color:#3C3489}
+.iw-red{background:#FCEBEB;color:#A32D2D}
+.iw-gray{background:#F1EFE8;color:#5F5E5A}
+.mc-title{font-size:14px;font-weight:600;color:#1a1a1a;margin-bottom:4px}
+.mc-desc{font-size:11px;color:#888;line-height:1.5}
+.badge{position:absolute;top:10px;right:10px;font-size:9px;padding:2px 7px;border-radius:8px;font-weight:600}
+.b-live{background:#E1F5EE;color:#085041}
+.b-soon{background:#FAEEDA;color:#633806}
+.footer{text-align:center;padding:14px;font-size:11px;color:#aaa;border-top:0.5px solid #E8EDF4}
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="logo">🔧 공구팩<span>토리</span></div>
-  <div class="tagline">재고 · 매입 · 매출 통합 관리 시스템</div>
-  <div class="date-badge" id="dateNow"></div>
+<div class="hdr">
+  <div class="hdr-logo">🔧 공구팩<span>토리</span></div>
+  <div class="hdr-sub">재고 · 매입 · 매출 통합 관리 시스템</div>
+  <div class="hdr-date" id="hd"></div>
 </div>
 
-<div style="padding:16px 16px 0">
-  <div class="notice">
-    <div class="notice-title">📢 시스템 안내</div>
-    <div class="notice-body">재고실사 진행 중입니다. 담당 구역 실사 완료 후 집계탭에서 확인하세요.</div>
-  </div>
+<div style="margin:16px 16px 0;background:#fff;border:0.5px solid #B5D4F4;border-left:3px solid #378ADD;border-radius:0 8px 8px 0;padding:10px 14px">
+  <div style="font-size:11px;font-weight:600;color:#0C447C;margin-bottom:2px">📢 시스템 안내</div>
+  <div style="font-size:11px;color:#185FA5;line-height:1.5">재고실사 진행 중입니다. 담당 구역 실사 완료 후 집계탭에서 확인하세요.</div>
 </div>
 
-<div class="menu-grid">
+<div class="grid">
 
-  <a class="menu-card blue" href="./inventory.html">
-    <span class="menu-badge badge-live">실시간</span>
-    <span class="menu-icon">📦</span>
-    <div class="menu-title">재고 실사</div>
-    <div class="menu-desc">실물 재고 파악<br>바코드 스캔 지원</div>
+  <a class="mcard mc-blue" href="./inventory.html">
+    <span class="badge b-live">실시간</span>
+    <div class="ic-wrap iw-blue">📦</div>
+    <div class="mc-title">재고 실사</div>
+    <div class="mc-desc">실물 재고 파악<br>바코드 스캔 지원</div>
   </a>
 
-  <a class="menu-card green" href="./stock.html">
-    <span class="menu-badge badge-soon">준비중</span>
-    <span class="menu-icon">🗄️</span>
-    <div class="menu-title">재고 현황</div>
-    <div class="menu-desc">품목별 현재고<br>입출고 이력</div>
+  <a class="mcard mc-teal" href="#">
+    <span class="badge b-soon">준비중</span>
+    <div class="ic-wrap iw-teal">🗄️</div>
+    <div class="mc-title">재고 현황</div>
+    <div class="mc-desc">품목별 현재고<br>입출고 이력</div>
   </a>
 
-  <a class="menu-card orange" href="./purchase.html">
-    <span class="menu-badge badge-soon">준비중</span>
-    <span class="menu-icon">🛒</span>
-    <div class="menu-title">매입 관리</div>
-    <div class="menu-desc">발주 · 입고 관리<br>공급업체별 현황</div>
+  <a class="mcard mc-amber" href="#">
+    <span class="badge b-soon">준비중</span>
+    <div class="ic-wrap iw-amber">🛒</div>
+    <div class="mc-title">매입 관리</div>
+    <div class="mc-desc">발주 · 입고 관리<br>공급업체별 현황</div>
   </a>
 
-  <a class="menu-card purple" href="./sales.html">
-    <span class="menu-badge badge-soon">준비중</span>
-    <span class="menu-icon">💰</span>
-    <div class="menu-title">매출 관리</div>
-    <div class="menu-desc">거래처별 매출<br>월별 실적 분석</div>
+  <a class="mcard mc-purple" href="#">
+    <span class="badge b-soon">준비중</span>
+    <div class="ic-wrap iw-purple">💰</div>
+    <div class="mc-title">매출 관리</div>
+    <div class="mc-desc">거래처별 매출<br>월별 실적 분석</div>
   </a>
 
-  <a class="menu-card red" href="./analysis.html">
-    <span class="menu-badge badge-soon">준비중</span>
-    <span class="menu-icon">📊</span>
-    <div class="menu-title">경영 분석</div>
-    <div class="menu-desc">마진율 · 회전율<br>손익 현황</div>
+  <a class="mcard mc-red" href="#">
+    <span class="badge b-soon">준비중</span>
+    <div class="ic-wrap iw-red">📊</div>
+    <div class="mc-title">경영 분석</div>
+    <div class="mc-desc">마진율 · 회전율<br>손익 현황</div>
   </a>
 
-  <a class="menu-card teal" href="./settings.html">
-    <span class="menu-badge badge-soon">준비중</span>
-    <span class="menu-icon">⚙️</span>
-    <div class="menu-title">설정</div>
-    <div class="menu-desc">품목 · 거래처<br>직원 관리</div>
+  <a class="mcard mc-gray" href="#">
+    <span class="badge b-soon">준비중</span>
+    <div class="ic-wrap iw-gray">⚙️</div>
+    <div class="mc-title">설정</div>
+    <div class="mc-desc">품목 · 거래처<br>직원 관리</div>
   </a>
 
 </div>
 
-<div class="footer">
-  공구팩토리 내부 관리 시스템 v1.0<br>
-  문의: 정부장
-</div>
+<div class="footer">공구팩토리 내부 관리 시스템 v1.0 &nbsp;·&nbsp; 문의: 정부장</div>
 
 <script>
-const d = new Date();
-document.getElementById('dateNow').textContent =
-  d.getFullYear() + '년 ' + (d.getMonth()+1) + '월 ' + d.getDate() + '일 ' +
-  ['일','월','화','수','목','금','토'][d.getDay()] + '요일';
+const d=new Date();
+const days=['일','월','화','수','목','금','토'];
+document.getElementById('hd').textContent=
+  d.getFullYear()+'년 '+(d.getMonth()+1)+'월 '+d.getDate()+'일 '+days[d.getDay()]+'요일';
 </script>
 </body>
 </html>
