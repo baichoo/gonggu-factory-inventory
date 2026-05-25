@@ -6,20 +6,39 @@ const STAFF_AV_TX=['#0C447C','#27500A','#633806','#3C3489','#712B13','#085041','
 
 // ── 직원 카드 빌드
 function buildStaffSelectGrid(){
-  const grid = document.getElementById('staffSelectGrid');
+  var grid = document.getElementById('staffSelectGrid');
   if(!grid) return;
-  grid.innerHTML = STAFF_LIST.map((name, idx) => {
-    const cnt = allRecords.filter(r=>r.worker===name).length;
-    return `<div onclick="selectStaff('${name}',${idx})"
-      style="background:#fff;border:0.5px solid #E8EDF4;border-radius:12px;padding:14px 12px;cursor:pointer;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent">
-      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:${STAFF_COLORS[idx]};border-radius:12px 12px 0 0"></div>
-      <div style="width:34px;height:34px;border-radius:50%;background:${STAFF_AV_BG[idx]};color:${STAFF_AV_TX[idx]};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;margin-bottom:8px">${name[0]}</div>
-      <div style="font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:2px">${name}</div>
-      <div style="font-size:10px;color:#aaa">오늘 ${cnt}건 입력</div>
-    </div>`;
-  }).join('');
-}
+  grid.innerHTML = '';
+  for(var i=0; i<STAFF_LIST.length; i++){
+    (function(name, idx){
+      var cnt = allRecords.filter(function(r){return r.worker===name;}).length;
+      var card = document.createElement('div');
+      card.style.cssText = 'background:#fff;border:0.5px solid #E8EDF4;border-radius:12px;padding:14px 12px;cursor:pointer;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent';
+      card.onclick = function(){ selectStaff(name, idx); };
 
+      var topLine = document.createElement('div');
+      topLine.style.cssText = 'position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0;background:' + STAFF_COLORS[idx];
+      card.appendChild(topLine);
+
+      var av = document.createElement('div');
+      av.style.cssText = 'width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;margin-bottom:8px;background:' + STAFF_AV_BG[idx] + ';color:' + STAFF_AV_TX[idx];
+      av.textContent = name[0];
+      card.appendChild(av);
+
+      var nameDiv = document.createElement('div');
+      nameDiv.style.cssText = 'font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:2px';
+      nameDiv.textContent = name;
+      card.appendChild(nameDiv);
+
+      var cntDiv = document.createElement('div');
+      cntDiv.style.cssText = 'font-size:10px;color:#aaa';
+      cntDiv.textContent = '오늘 ' + cnt + '건 입력';
+      card.appendChild(cntDiv);
+
+      grid.appendChild(card);
+    })(STAFF_LIST[i], i);
+  }
+}
 
 // ── 직원 선택
 function selectStaff(name, idx){
