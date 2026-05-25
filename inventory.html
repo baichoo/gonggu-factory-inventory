@@ -290,29 +290,38 @@ setInterval(updateDate, 60000);
 // 새로고침 후 세션 복원
 function restoreSession(){
   try{
-    const sec = localStorage.getItem('gf_sec') || '';
-    const who = localStorage.getItem('gf_who') || '';
-    const secSel = document.getElementById('globalSec');
-    const whoSel = document.getElementById('globalWho');
-    if(sec && secSel){
-      // option이 실제로 있는지 확인 후 설정
-      const hasOption = Array.from(secSel.options).some(o => o.value === sec);
-      if(hasOption){ secSel.value = sec; curSec = sec; }
+    const who = localStorage.getItem('gf_who')||'';
+    const sec = localStorage.getItem('gf_sec')||'';
+    if(who && STAFF_LIST.includes(who)){
+      const idx = STAFF_LIST.indexOf(who);
+      curWho = who;
+      const s1=document.getElementById('step1');
+      const s2=document.getElementById('step2');
+      if(s1) s1.style.display='none';
+      if(s2) s2.style.display='block';
+      const av=document.getElementById('whoAv');
+      if(av){av.textContent=who[0];av.style.background=STAFF_AV_BG[idx];av.style.color=STAFF_AV_TX[idx];}
+      const wn=document.getElementById('whoName');
+      if(wn) wn.textContent=who;
+      if(sec){
+        const sel=document.getElementById('globalSec');
+        if(sel){
+          const has=Array.from(sel.options).some(o=>o.value===sec);
+          if(has){sel.value=sec;curSec=sec;sel.style.borderColor='#1F3864';sel.style.background='#EEF3FB';sel.style.color='#1F3864';}
+        }
+      }
+      updateSearchState();
+    } else {
+      buildStaffSelectGrid();
     }
-    if(who && whoSel){
-      const hasOption = Array.from(whoSel.options).some(o => o.value === who);
-      if(hasOption){ whoSel.value = who; curWho = who; }
-    }
-    if(curSec || curWho) updateSessionUI();
-  }catch(e){ console.log('세션복원 오류:', e); }
+  }catch(e){ buildStaffSelectGrid(); }
 }
-// DOM 로드 완료 시점에 복원 (두 가지 이벤트 모두 대응)
-if(document.readyState === 'loading'){
+if(document.readyState==='loading'){
   document.addEventListener('DOMContentLoaded', restoreSession);
 } else {
   restoreSession();
 }
-window.addEventListener('pageshow', restoreSession); // 뒤로가기/캐시 복원 대응
+window.addEventListener('pageshow', restoreSession);
 
 // ── 수파베이스 연결 상태 ──
 function setOnline(on){
