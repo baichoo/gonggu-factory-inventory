@@ -355,52 +355,78 @@ function loadItemsAsync() {
   var loadingMask = document.getElementById('loadingMask');
   if(loadingText) loadingText.textContent = '품목 데이터 로딩중...';
   
-  // 수파베이스에서 전체 품목 로드 (페이지네이션)
   var allItems = [];
-  var pageSize = 1000;
   
   function fetchPage(offset) {
-    fetch('https://qqnsuvcnenzqgupaloqm.supabase.co/rest/v1/items?select=code,name,unit,price,stock,barcode&limit=' + pageSize + '&offset=' + offset, {
+    var url = 'https://qqnsuvcnenzqgupaloqm.supabase.co/rest/v1/items?select=code,name,unit,price,stock,barcode&limit=1000&offset=' + offset;
+    fetch(url, {
       headers: {
         'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxbnN1dmNuZW56cWd1cGFsb3FtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0NDE0MzYsImV4cCI6MjA5NTAxNzQzNn0.nM9aPjUPqgNwn6_Mp-ubLoUljv5MOIrPllu5aveuoyA',
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxbnN1dmNuZW56cWd1cGFsb3FtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0NDE0MzYsImV4cCI6MjA5NTAxNzQzNn0.nM9aPjUPqgNwn6_Mp-ubLoUljv5MOIrPllu5aveuoyA'
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxbnN1dmNuZW56cWd1cGFsb3FtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0NDE0MzYsImV4cCI6MjA5NTAxNzQzNn0.nM9aPjUPqgNwn6_Mp-ubLoUljv5MOIrPllu5aveuoyA',
+        'Accept': 'application/json'
       }
     })
-    .then(function(r) { return r.json(); })
+    .then(function(r) {
+      if(!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
     .then(function(data) {
       if(data && data.length > 0) {
         data.forEach(function(x) {
-          allItems.push({c:x.code,n:x.name,u:x.unit,p:x.price,s:x.stock,b:x.barcode||''});
+          allItems.push({c:x.code,n:x.name,u:x.unit||'EA',p:x.price||0,s:x.stock||0,b:x.barcode||''});
         });
         if(loadingText) loadingText.textContent = '로딩중... ' + allItems.length + '개';
-        if(data.length === pageSize) {
-          fetchPage(offset + pageSize);
+        if(data.length === 1000) {
+          fetchPage(offset + 1000);
         } else {
-          window.ITEMS = allItems;
-          if(loadingText) loadingText.textContent = '품목 ' + allItems.length + '개 완료';
-          if(loadingMask) loadingMask.classList.add('hidden');
-          loadLiveData();
+          finish();
         }
+      } else if(allItems.length > 0) {
+        finish();
       } else {
-        // 수파베이스 데이터 없으면 GitHub CDN 폴백
-        if(loadingText) loadingText.textContent = '대체 서버에서 로딩중...';
-        fetch('https://cdn.jsdelivr.net/gh/baichoo/gonggu-factory-inventory@main/items.json')
-          .then(function(r) { return r.json(); })
-          .then(function(d) {
-            window.ITEMS = d;
-            if(loadingMask) loadingMask.classList.add('hidden');
-            loadLiveData();
-          });
+        // 수파베이스 데이터 없음 - CDN 폴백
+        loadFromCDN();
       }
     })
     .catch(function(e) {
+      console.error('수파베이스 오류:', e);
+      if(allItems.length > 0) {
+        finish();
+      } else {
+        loadFromCDN();
+      }
+    });
+  }
+  
+  function finish() {
+    window.ITEMS = allItems;
+    if(loadingText) loadingText.textContent = '품목 ' + allItems.length + '개 완료!';
+    setTimeout(function() {
+      if(loadingMask) loadingMask.classList.add('hidden');
+      loadLiveData();
+    }, 300);
+  }
+  
+  function loadFromCDN() {
+    if(loadingText) loadingText.textContent = 'CDN에서 로딩중...';
+    fetch('https://cdn.jsdelivr.net/gh/baichoo/gonggu-factory-inventory@main/items.json')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      window.ITEMS = data;
+      if(loadingText) loadingText.textContent = '품목 ' + data.length + '개 완료!';
+      setTimeout(function() {
+        if(loadingMask) loadingMask.classList.add('hidden');
+        loadLiveData();
+      }, 300);
+    })
+    .catch(function(e) {
       if(loadingText) loadingText.textContent = '로딩 실패 - 새로고침 해주세요';
-      console.error('Items load error:', e);
     });
   }
   
   fetchPage(0);
 }
+
 
 function waitForItems(){
   if(window.ITEMS){
