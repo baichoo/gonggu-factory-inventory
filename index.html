@@ -47,10 +47,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 /* 직원 */
 .staff-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px;}
-.staff-card{border-radius:12px;padding:18px 14px;text-align:center;cursor:pointer;border:none;width:100%;font-family:inherit;}
-.staff-card:active{opacity:0.85;}
-.staff-card .sc-ico{font-size:28px;display:block;margin-bottom:5px;pointer-events:none;}
-.staff-card .sc-name{font-size:17px;font-weight:600;color:#fff;display:block;pointer-events:none;}
+.staff-card{background:#fff;border-radius:14px;padding:18px 14px;text-align:center;cursor:pointer;border:1.5px solid #e8edf2;width:100%;font-family:inherit;transition:all 0.15s;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+.staff-card:active{background:#f0f5ff;border-color:#4B63F7;transform:scale(0.97);}
+.staff-card .sc-ico{font-size:30px;display:block;margin-bottom:8px;pointer-events:none;}
+.staff-card .sc-name{font-size:16px;font-weight:700;color:#1a1a2e;display:block;pointer-events:none;}
+.staff-card .sc-role{font-size:11px;color:#9aa5b4;display:block;margin-top:3px;pointer-events:none;}
 
 /* 섹터 */
 .sector-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:14px;}
@@ -266,13 +267,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="step active" id="step1">
       <div style="padding:10px 14px 2px;font-size:12px;color:#888;">본인 이름을 선택하세요</div>
       <div class="staff-grid">
-        <button class="staff-card" style="background:#4A7FBF;" onclick="selectStaff('정부장')"><span class="sc-ico">👔</span><span class="sc-name">정부장</span></button>
-        <button class="staff-card" style="background:#4E8A5A;" onclick="selectStaff('유부장')"><span class="sc-ico">👔</span><span class="sc-name">유부장</span></button>
-        <button class="staff-card" style="background:#C47B3E;" onclick="selectStaff('조부장')"><span class="sc-ico">👔</span><span class="sc-name">조부장</span></button>
-        <button class="staff-card" style="background:#7A5AA0;" onclick="selectStaff('권과장')"><span class="sc-ico">🧑‍💼</span><span class="sc-name">권과장</span></button>
-        <button class="staff-card" style="background:#B05555;" onclick="selectStaff('김대리')"><span class="sc-ico">🧑‍💼</span><span class="sc-name">김대리</span></button>
-        <button class="staff-card" style="background:#3D8C80;" onclick="selectStaff('손대리')"><span class="sc-ico">🧑‍💼</span><span class="sc-name">손대리</span></button>
-        <button class="staff-card" style="background:#A05580;grid-column:1/-1;" onclick="selectStaff('정실장')"><span class="sc-ico">👩‍💼</span><span class="sc-name">정실장</span></button>
+        <button class="staff-card" onclick="selectStaff('정부장')"><span class="sc-ico">👔</span><span class="sc-name">정부장</span><span class="sc-role">부장</span></button>
+        <button class="staff-card" onclick="selectStaff('유부장')"><span class="sc-ico">👔</span><span class="sc-name">유부장</span><span class="sc-role">부장</span></button>
+        <button class="staff-card" onclick="selectStaff('조부장')"><span class="sc-ico">👔</span><span class="sc-name">조부장</span><span class="sc-role">부장</span></button>
+        <button class="staff-card" onclick="selectStaff('권과장')"><span class="sc-ico">🧑‍💼</span><span class="sc-name">권과장</span><span class="sc-role">과장</span></button>
+        <button class="staff-card" onclick="selectStaff('김대리')"><span class="sc-ico">🧑‍💼</span><span class="sc-name">김대리</span><span class="sc-role">대리</span></button>
+        <button class="staff-card" onclick="selectStaff('손대리')"><span class="sc-ico">🧑‍💼</span><span class="sc-name">손대리</span><span class="sc-role">대리</span></button>
+        <button class="staff-card" style="grid-column:1/-1;" onclick="selectStaff('정실장')"><span class="sc-ico">👩‍💼</span><span class="sc-name">정실장</span><span class="sc-role">실장</span></button>
       </div>
     </div>
     <div class="step" id="step2">
