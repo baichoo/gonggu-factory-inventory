@@ -351,23 +351,29 @@ window._ITEMS_LOADED = 0;
 
 // 품목 데이터를 GitHub에서 fetch (iOS Safari 대응)
 function loadItemsAsync() {
-  document.getElementById('loadingText').textContent = '품목 데이터 로딩중... (최초 1회)';
+  var loadingText = document.getElementById('loadingText');
+  var loadingMask = document.getElementById('loadingMask');
+  if(loadingText) loadingText.textContent = '품목 데이터 로딩중...';
   fetch('https://cdn.jsdelivr.net/gh/baichoo/gonggu-factory-inventory@main/items.json')
     .then(function(r) { return r.json(); })
     .then(function(data) {
       window.ITEMS = data;
-      document.getElementById('loadingText').textContent = '품목 ' + data.length + '개 완료';
-      document.getElementById('loadingMask').classList.add('hidden');
+      if(loadingText) loadingText.textContent = '품목 ' + data.length + '개 완료';
+      if(loadingMask) loadingMask.classList.add('hidden');
       loadLiveData();
     })
     .catch(function(e) {
-      document.getElementById('loadingText').textContent = '로딩 실패 - 새로고침 해주세요';
+      if(loadingText) loadingText.textContent = '로딩 실패 - 새로고침 해주세요';
       console.error('Items load error:', e);
     });
 }
 
 function waitForItems(){
-  if(window.ITEMS){document.getElementById('loadingMask').classList.add('hidden');loadLiveData();return;}
+  if(window.ITEMS){
+    var m=document.getElementById('loadingMask');
+    if(m)m.classList.add('hidden');
+    loadLiveData();return;
+  }
   setTimeout(waitForItems,100);
 }
 
