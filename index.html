@@ -349,23 +349,57 @@ window._ITEMS_CHUNKS = 34;
 window._ITEMS_LOADED = 0;
 
 
-// 품목 데이터를 GitHub에서 fetch (iOS Safari 대응)
+// 품목 데이터를 수파베이스에서 fetch
 function loadItemsAsync() {
   var loadingText = document.getElementById('loadingText');
   var loadingMask = document.getElementById('loadingMask');
   if(loadingText) loadingText.textContent = '품목 데이터 로딩중...';
-  fetch('https://cdn.jsdelivr.net/gh/baichoo/gonggu-factory-inventory@main/items.json')
+  
+  // 수파베이스에서 전체 품목 로드 (페이지네이션)
+  var allItems = [];
+  var pageSize = 1000;
+  
+  function fetchPage(offset) {
+    fetch('https://qqnsuvcnenzqgupaloqm.supabase.co/rest/v1/items?select=code,name,unit,price,stock,barcode&limit=' + pageSize + '&offset=' + offset, {
+      headers: {
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxbnN1dmNuZW56cWd1cGFsb3FtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0NDE0MzYsImV4cCI6MjA5NTAxNzQzNn0.nM9aPjUPqgNwn6_Mp-ubLoUljv5MOIrPllu5aveuoyA',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxbnN1dmNuZW56cWd1cGFsb3FtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0NDE0MzYsImV4cCI6MjA5NTAxNzQzNn0.nM9aPjUPqgNwn6_Mp-ubLoUljv5MOIrPllu5aveuoyA'
+      }
+    })
     .then(function(r) { return r.json(); })
     .then(function(data) {
-      window.ITEMS = data;
-      if(loadingText) loadingText.textContent = '품목 ' + data.length + '개 완료';
-      if(loadingMask) loadingMask.classList.add('hidden');
-      loadLiveData();
+      if(data && data.length > 0) {
+        data.forEach(function(x) {
+          allItems.push({c:x.code,n:x.name,u:x.unit,p:x.price,s:x.stock,b:x.barcode||''});
+        });
+        if(loadingText) loadingText.textContent = '로딩중... ' + allItems.length + '개';
+        if(data.length === pageSize) {
+          fetchPage(offset + pageSize);
+        } else {
+          window.ITEMS = allItems;
+          if(loadingText) loadingText.textContent = '품목 ' + allItems.length + '개 완료';
+          if(loadingMask) loadingMask.classList.add('hidden');
+          loadLiveData();
+        }
+      } else {
+        // 수파베이스 데이터 없으면 GitHub CDN 폴백
+        if(loadingText) loadingText.textContent = '대체 서버에서 로딩중...';
+        fetch('https://cdn.jsdelivr.net/gh/baichoo/gonggu-factory-inventory@main/items.json')
+          .then(function(r) { return r.json(); })
+          .then(function(d) {
+            window.ITEMS = d;
+            if(loadingMask) loadingMask.classList.add('hidden');
+            loadLiveData();
+          });
+      }
     })
     .catch(function(e) {
       if(loadingText) loadingText.textContent = '로딩 실패 - 새로고침 해주세요';
       console.error('Items load error:', e);
     });
+  }
+  
+  fetchPage(0);
 }
 
 function waitForItems(){
