@@ -400,7 +400,8 @@ function loadItemsAsync() {
   
   function finish() {
     window.ITEMS = allItems;
-    if(loadingText) loadingText.textContent = '품목 ' + allItems.length + '개 완료!';
+    console.log('✅ ITEMS 로딩 완료:', allItems.length, '개');
+    if(loadingText) loadingText.textContent = '품목 ' + allItems.length + '개 로딩완료';
     setTimeout(function() {
       if(loadingMask) loadingMask.classList.add('hidden');
       loadLiveData();
@@ -482,7 +483,8 @@ function doSearch(q){
 
 function renderResults(results){
   if(!results.length){document.getElementById('resultList').innerHTML='<div class="empty-msg">검색 결과 없음</div>';return;}
-  document.getElementById('resultList').innerHTML=results.map(x=>{
+  var countHtml = '<div style="padding:6px 14px;font-size:12px;color:#888;">검색결과 '+results.length+'개 (전체 품목 '+(window.ITEMS?window.ITEMS.length:0)+'개)</div>';
+  document.getElementById('resultList').innerHTML=countHtml+results.map(x=>{
     const sc=x.c.replace(/[^a-zA-Z0-9]/g,'_');
     return `<div class="result-item${expandedCode===x.c?' expanded':''}" id="ri_${sc}">
       <div class="ri-header" onclick="toggleItem(${JSON.stringify(x).replace(/"/g,'&quot;')})">
