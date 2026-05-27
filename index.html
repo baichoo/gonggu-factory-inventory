@@ -157,6 +157,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .sr-cnt{font-weight:700;color:#2c5282;}
 .sr-arrow{font-size:11px;color:#bbb;}
 
+
+/* 집계 품목검색 */
+.summary-search-wrap{position:sticky;top:0;z-index:10;background:#f0f4f8;padding:10px 14px 8px;margin:-0px;border-bottom:1px solid #e2e8f0;}
+.summary-search-box{display:flex;align-items:center;gap:8px;background:#fff;border-radius:11px;padding:9px 13px;border:1.5px solid #c8d8ea;}
+.summary-search-box input{flex:1;border:none;outline:none;font-size:14px;color:#333;background:transparent;}
+.summary-search-box input::placeholder{color:#aaa;}
+.summary-search-box .s-clear{font-size:16px;cursor:pointer;color:#aaa;padding:2px 4px;}
+.search-result-wrap{padding:10px 14px 0;}
+.search-result-item{background:#fff;border-radius:11px;padding:11px 14px;margin-bottom:8px;border:1px solid #e8f0f8;box-shadow:0 1px 4px rgba(44,82,130,0.06);}
+.sri-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.sri-name{font-size:13px;font-weight:700;color:#1a365d;flex:1;margin-right:8px;}
+.sri-status{}
+.sri-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;}
+.sri-row{display:flex;align-items:center;gap:5px;font-size:12px;padding:2px 0;}
+.sri-key{color:#888;min-width:42px;flex-shrink:0;}
+.sri-val{color:#333;font-weight:600;}
+.sri-val.blue{color:#2c5282;}
+.search-no-result{text-align:center;padding:30px 0;color:#aaa;font-size:14px;}
+.search-count{font-size:12px;color:#888;padding:6px 0 4px;margin-bottom:4px;}
+
 /* 집계 상세 */
 .summary-detail{display:none;background:#f7fbff;border-radius:8px;padding:8px;margin-top:4px;margin-bottom:4px;}
 .summary-detail.open{display:block;}
@@ -316,6 +336,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <!-- 탭3 집계 -->
   <div class="page" id="page-summary">
     <div class="hdr">📈 집계</div>
+    <div class="summary-search-wrap">
+      <div class="summary-search-box">
+        <span style="font-size:16px;color:#888;">🔍</span>
+        <input type="text" id="summarySearchInp" placeholder="품목명 검색..." oninput="onSummarySearch(this.value)" autocomplete="off" />
+        <span class="s-clear" onclick="clearSummarySearch()">✕</span>
+      </div>
+    </div>
+    <div id="summarySearchResult" style="display:none;"></div>
     <div class="summary-wrap" id="summaryWrap"><div class="empty-msg">로딩중...</div></div>
   </div>
 
@@ -795,6 +823,54 @@ function renderSummary(){
     <button class="export-btn" onclick="exportCSV()">📥 CSV 내보내기</button>
     <button onclick="loadLiveData().then(()=>{renderSummary();showToast('새로고침 완료');})" style="width:100%;background:#2c5282;color:#fff;border:none;border-radius:11px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;margin-top:8px;">🔄 새로고침</button>
   `;
+}
+
+
+/* ===== 집계 품목 검색 ===== */
+function onSummarySearch(val){
+  const q=val.trim();
+  const resultEl=document.getElementById('summarySearchResult');
+  const wrapEl=document.getElementById('summaryWrap');
+  if(!q){
+    resultEl.style.display='none';
+    wrapEl.style.display='';
+    return;
+  }
+  wrapEl.style.display='none';
+  resultEl.style.display='';
+  if(!allRecords.length){resultEl.innerHTML='<div class="search-no-result">저장된 데이터가 없습니다</div>';return;}
+  const matched=allRecords.filter(r=>r.name&&r.name.replace(/^\./,'').toLowerCase().includes(q.toLowerCase()));
+  if(!matched.length){resultEl.innerHTML='<div class="search-result-wrap"><div class="search-no-result">검색 결과가 없습니다</div></div>';return;}
+  const statusColor={정상:'#2d6a4f',파손:'#c0392b',확인필요:'#b45309',미발견:'#7f8c8d',단종:'#6b7280',반품필요:'#7b2d8b'};
+  const statusBg={정상:'#d4edda',파손:'#fde8e8',확인필요:'#fef3c7',미발견:'#f1f5f9',단종:'#f1f5f9',반품필요:'#f3e8ff'};
+  const fmt=(r)=>{
+    const dt=r.created_at?new Date(r.created_at):null;
+    const dateStr=dt?`${dt.getMonth()+1}/${dt.getDate()} ${dt.getHours().toString().padStart(2,'0')}:${dt.getMinutes().toString().padStart(2,'0')}`:'—';
+    const sc=statusColor[r.status]||'#555';
+    const sb=statusBg[r.status]||'#f5f5f5';
+    const nm=r.name?r.name.replace(/^\./,''):r.name;
+    return `<div class="search-result-item">
+      <div class="sri-header">
+        <div class="sri-name">${nm}</div>
+        <span class="sri-status badge badge-${r.status}" style="background:${sb};color:${sc};font-size:11px;padding:3px 8px;border-radius:6px;font-weight:700;">${r.status}</span>
+      </div>
+      <div class="sri-grid">
+        <div class="sri-row"><span class="sri-key">담당자</span><span class="sri-val">${r.worker||'—'}</span></div>
+        <div class="sri-row"><span class="sri-key">수량</span><span class="sri-val blue">${r.actual_qty}${r.unit||''}</span></div>
+        <div class="sri-row"><span class="sri-key">섹터</span><span class="sri-val">${r.sector||'—'}</span></div>
+        <div class="sri-row"><span class="sri-key">날짜</span><span class="sri-val">${dateStr}</span></div>
+        ${r.memo?`<div class="sri-row" style="grid-column:1/-1;"><span class="sri-key">비고</span><span class="sri-val" style="color:#555;font-weight:400;">${r.memo}</span></div>`:''}
+      </div>
+    </div>`;
+  };
+  resultEl.innerHTML=`<div class="search-result-wrap"><div class="search-count">${matched.length}건 검색됨</div>${matched.map(fmt).join('')}</div>`;
+}
+
+function clearSummarySearch(){
+  const inp=document.getElementById('summarySearchInp');
+  if(inp) inp.value='';
+  document.getElementById('summarySearchResult').style.display='none';
+  document.getElementById('summaryWrap').style.display='';
 }
 
 function toggleSummaryDetail(key){
