@@ -476,7 +476,7 @@ function doSearch(q){
   if(!q.trim()){document.getElementById('resultList').innerHTML='<div class="empty-msg">품목명을 입력하거나 바코드를 스캔하세요</div>';return;}
   searchTimer=setTimeout(()=>{
     const kw=q.trim().toLowerCase();
-    renderResults(window.ITEMS.filter(x=>x.n.toLowerCase().includes(kw)||x.c.toLowerCase().includes(kw)).slice(0,25));
+    renderResults(window.ITEMS.filter(x=>x.n.toLowerCase().includes(kw)||x.c.toLowerCase().includes(kw)).slice(0,200));
   },200);
 }
 
@@ -512,7 +512,7 @@ function renderResults(results){
 function toggleItem(item){
   expandedCode=(expandedCode===item.c)?null:item.c;
   const q=document.getElementById('searchInp').value;
-  if(q.trim()){const kw=q.trim().toLowerCase();renderResults(window.ITEMS.filter(x=>x.n.toLowerCase().includes(kw)||x.c.toLowerCase().includes(kw)).slice(0,25));}
+  if(q.trim()){const kw=q.trim().toLowerCase();renderResults(window.ITEMS.filter(x=>x.n.toLowerCase().includes(kw)||x.c.toLowerCase().includes(kw)).slice(0,200));}
   if(expandedCode){setTimeout(()=>{const el=document.getElementById('ri_'+expandedCode.replace(/[^a-zA-Z0-9]/g,'_'));if(el)el.scrollIntoView({behavior:'smooth',block:'nearest'});},50);}
 }
 function chQty(id,d){const inp=document.getElementById(id);if(inp)inp.value=Math.max(0,(parseInt(inp.value)||0)+d);}
@@ -538,7 +538,7 @@ async function saveItem(item){
       renderSavedList();
       expandedCode=null;
       const q=document.getElementById('searchInp').value;
-      if(q.trim()){const kw=q.trim().toLowerCase();renderResults(window.ITEMS.filter(x=>x.n.toLowerCase().includes(kw)||x.c.toLowerCase().includes(kw)).slice(0,25));}
+      if(q.trim()){const kw=q.trim().toLowerCase();renderResults(window.ITEMS.filter(x=>x.n.toLowerCase().includes(kw)||x.c.toLowerCase().includes(kw)).slice(0,200));}
       setTimeout(()=>document.getElementById('searchInp').focus(),100);
       loadLiveData();
     }else{showToast('❌ 저장 실패');if(btn){btn.disabled=false;btn.textContent='💾 저장';}}
