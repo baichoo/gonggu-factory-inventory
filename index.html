@@ -113,6 +113,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .si-qty{font-size:12px;color:#2c5282;font-weight:700;}
 .si-badge{font-size:10px;background:#f0fff4;color:#276749;border-radius:5px;padding:1px 6px;}
 
+
+/* 현황 탭 검색창 */
+.live-search-wrap{position:sticky;top:0;z-index:10;background:#f0f4f8;padding:10px 14px 8px;border-bottom:1px solid #e2e8f0;}
+.live-search-box{display:flex;align-items:center;gap:8px;background:#fff;border-radius:11px;padding:9px 13px;border:1.5px solid #c8d8ea;}
+.live-search-box input{flex:1;border:none;outline:none;font-size:14px;color:#333;background:transparent;}
+.live-search-box input::placeholder{color:#aaa;}
+.live-search-clear{font-size:16px;cursor:pointer;color:#aaa;padding:2px 4px;}
+.live-search-count{font-size:12px;color:#888;padding:5px 2px 0;}
+.live-result-item{background:#fff;border-radius:11px;padding:11px 14px;margin-bottom:8px;border:1px solid #e8f0f8;box-shadow:0 1px 4px rgba(44,82,130,0.06);}
+.lri-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.lri-name{font-size:13px;font-weight:700;color:#1a365d;flex:1;margin-right:8px;}
+.lri-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;}
+.lri-row{display:flex;align-items:center;gap:5px;font-size:12px;padding:2px 0;}
+.lri-key{color:#888;min-width:42px;flex-shrink:0;}
+.lri-val{color:#333;font-weight:600;}
+.lri-val.blue{color:#2c5282;}
+
 /* 현황/집계 */
 .live-wrap{padding:14px;}
 .worker-card{background:#fff;border-radius:11px;padding:12px 14px;margin-bottom:9px;cursor:pointer;}
@@ -340,6 +357,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <!-- 탭2 현황 -->
   <div class="page" id="page-live">
     <div class="hdr"><span>📊 실시간 현황</span><span id="totalCount" style="margin-left:auto;font-size:13px;font-weight:400;"></span></div>
+    <div class="live-search-wrap">
+      <div class="live-search-box">
+        <span style="font-size:16px;color:#888;">🔍</span>
+        <input type="text" id="liveSearchInp" placeholder="품목명 검색..." oninput="onLiveSearch(this.value)" autocomplete="off" />
+        <span class="live-search-clear" onclick="clearLiveSearch()">✕</span>
+      </div>
+      <div class="live-search-count" id="liveSearchCount"></div>
+    </div>
+    <div id="liveSearchResult" style="display:none;padding:10px 14px 0;"></div>
     <div class="live-wrap" id="liveWrap"><div class="empty-msg">로딩중...</div></div>
     <div id="recordDetail" style="display:none;">
       <div class="hdr" style="position:sticky;top:0;">
@@ -702,6 +728,74 @@ async function loadLiveData(){
     });
     if(res.ok){allRecords=await res.json();document.getElementById('totalCount').textContent='총 '+allRecords.length+'건';}
   }catch(e){}
+}
+
+
+/* ===== 현황 탭 품목 검색 ===== */
+function onLiveSearch(val){
+  const q = val.trim();
+  const resultEl = document.getElementById('liveSearchResult');
+  const countEl  = document.getElementById('liveSearchCount');
+  const wrapEl   = document.getElementById('liveWrap');
+
+  if(!q){
+    resultEl.style.display='none';
+    wrapEl.style.display='';
+    countEl.textContent='';
+    return;
+  }
+  wrapEl.style.display='none';
+  resultEl.style.display='';
+
+  if(!allRecords.length){
+    resultEl.innerHTML='<div class="empty-msg">저장된 데이터가 없습니다</div>';
+    return;
+  }
+
+  const matched = allRecords.filter(r =>
+    r.name && r.name.replace(/^\./, '').toLowerCase().includes(q.toLowerCase())
+  );
+
+  countEl.textContent = matched.length ? matched.length+'건 검색됨' : '';
+
+  if(!matched.length){
+    resultEl.innerHTML='<div style="text-align:center;padding:30px 0;color:#aaa;font-size:14px;">검색 결과가 없습니다</div>';
+    return;
+  }
+
+  const statusColor={정상:'#2d6a4f',파손:'#c0392b',확인필요:'#b45309',미발견:'#7f8c8d',단종:'#6b7280',반품필요:'#7b2d8b'};
+  const statusBg   ={정상:'#d4edda',파손:'#fde8e8',확인필요:'#fef3c7',미발견:'#f1f5f9',단종:'#f1f5f9',반품필요:'#f3e8ff'};
+
+  resultEl.innerHTML = matched.map(r => {
+    const dt = r.created_at ? new Date(r.created_at) : null;
+    const dateStr = dt
+      ? `${dt.getMonth()+1}/${dt.getDate()} ${dt.getHours().toString().padStart(2,'0')}:${dt.getMinutes().toString().padStart(2,'0')}`
+      : '—';
+    const nm  = r.name ? r.name.replace(/^\./, '') : r.name;
+    const sc  = statusColor[r.status] || '#555';
+    const sb  = statusBg[r.status]   || '#f5f5f5';
+    return `<div class="live-result-item">
+      <div class="lri-header">
+        <div class="lri-name">${nm}</div>
+        <span style="background:${sb};color:${sc};font-size:11px;padding:3px 8px;border-radius:6px;font-weight:700;">${r.status}</span>
+      </div>
+      <div class="lri-grid">
+        <div class="lri-row"><span class="lri-key">담당자</span><span class="lri-val">${r.worker||'—'}</span></div>
+        <div class="lri-row"><span class="lri-key">수량</span><span class="lri-val blue">${r.actual_qty}${r.unit||''}</span></div>
+        <div class="lri-row"><span class="lri-key">섹터</span><span class="lri-val">${r.sector||'—'}</span></div>
+        <div class="lri-row"><span class="lri-key">날짜</span><span class="lri-val">${dateStr}</span></div>
+        ${r.memo ? `<div class="lri-row" style="grid-column:1/-1;"><span class="lri-key">비고</span><span class="lri-val" style="color:#555;font-weight:400;">${r.memo}</span></div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function clearLiveSearch(){
+  const inp = document.getElementById('liveSearchInp');
+  if(inp) inp.value = '';
+  document.getElementById('liveSearchResult').style.display = 'none';
+  document.getElementById('liveSearchCount').textContent = '';
+  document.getElementById('liveWrap').style.display = '';
 }
 
 function renderLive(){
