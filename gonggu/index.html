@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>공구팩토리 관리 시스템</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f2f5;color:#1a1a1a;}
+.app{display:none;} .app.active{display:block;}
+
+/* 홈 */
+.hero{background:linear-gradient(160deg,#0a1628 0%,#1a3a6e 60%,#0d2347 100%);color:#fff;padding:40px 24px 32px;text-align:center;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:rgba(99,179,237,0.08);border-radius:50%;}
+.hero::after{content:'';position:absolute;bottom:-40px;left:-40px;width:160px;height:160px;background:rgba(99,179,237,0.06);border-radius:50%;}
+.hero-logo{font-size:36px;margin-bottom:10px;filter:drop-shadow(0 0 12px rgba(99,179,237,0.5));}
+.hero-brand{font-size:32px;font-weight:900;letter-spacing:3px;color:#fff;margin-bottom:6px;text-shadow:0 0 30px rgba(99,179,237,0.4);}
+.hero-title{font-size:14px;color:rgba(255,255,255,0.55);letter-spacing:1px;margin-bottom:20px;line-height:1.6;}
+.date-badge{display:inline-block;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:20px;padding:7px 20px;font-size:13px;backdrop-filter:blur(4px);}
+.notice{margin:14px 16px;background:#fff;border-radius:12px;padding:13px 15px;border-left:4px solid #2c5282;display:flex;align-items:flex-start;gap:10px;}
+.notice-text{font-size:13px;color:#444;line-height:1.5;}
+.home-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 16px 24px;}
+.hcard{background:#fff;border-radius:14px;padding:20px 14px 18px;cursor:pointer;position:relative;overflow:hidden;border:none;width:100%;font-family:inherit;text-align:left;}
+.hcard:active{opacity:0.88;}
+.hcard-badge{position:absolute;top:11px;right:11px;font-size:10px;font-weight:600;border-radius:6px;padding:2px 7px;}
+.badge-live{background:#e6f4ea;color:#1e7e34;} .badge-ready{background:#fef3cd;color:#856404;}
+.hcard-icon{width:50px;height:50px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:11px;}
+.hcard-title{font-size:15px;font-weight:700;color:#1a1a1a;margin-bottom:4px;}
+.hcard-desc{font-size:11px;color:#999;line-height:1.5;}
+.hcard-bar{position:absolute;bottom:0;left:0;right:0;height:3px;}
+.hcard-blue .hcard-icon{background:#e8f0fe;} .hcard-blue .hcard-bar{background:#2c5282;}
+.hcard-green .hcard-icon{background:#e6f4ea;} .hcard-green .hcard-bar{background:#2e7d32;}
+.hcard-amber .hcard-icon{background:#fff8e1;} .hcard-amber .hcard-bar{background:#f59e0b;}
+.hcard-purple .hcard-icon{background:#f3e8ff;} .hcard-purple .hcard-bar{background:#7c3aed;}
+.hcard-red .hcard-icon{background:#fce8e8;} .hcard-red .hcard-bar{background:#dc2626;}
+.hcard-gray .hcard-icon{background:#f3f4f6;} .hcard-gray .hcard-bar{background:#9ca3af;}
+
+/* 네비 */
+.nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e0e0e0;display:flex;z-index:100;height:68px;}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:transparent;font-size:12px;font-weight:600;color:#aaa;cursor:pointer;padding:6px 0;}
+.nav-btn.active{color:#2c5282;}
+.nav-btn .ico{font-size:26px;line-height:1;}
+.page{display:none;padding-bottom:76px;min-height:100vh;} .page.active{display:block;}
+.hdr{background:#2c5282;color:#fff;padding:13px 16px;font-size:16px;font-weight:600;position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:8px;}
+.hdr-back{background:rgba(255,255,255,0.2);border:none;color:#fff;width:32px;height:32px;border-radius:8px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.step{display:none;} .step.active{display:block;}
+
+/* 직원 */
+.staff-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px;}
+.staff-card{background:#fff;border-radius:14px;padding:18px 14px;text-align:center;cursor:pointer;border:1.5px solid #e8edf2;width:100%;font-family:inherit;transition:all 0.15s;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+.staff-card:active{background:#f0f5ff;border-color:#4B63F7;transform:scale(0.97);}
+.staff-card .sc-ico{font-size:30px;display:block;margin-bottom:8px;pointer-events:none;}
+.staff-card .sc-name{font-size:16px;font-weight:700;color:#1a1a2e;display:block;pointer-events:none;}
+.staff-card .sc-role{font-size:11px;color:#9aa5b4;display:block;margin-top:3px;pointer-events:none;}
+
+/* 섹터 */
+.sector-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:14px;}
+.sector-btn{background:#fff;border:1.5px solid #e0e0e0;border-radius:10px;padding:13px 8px;text-align:center;cursor:pointer;font-size:13px;font-weight:600;color:#333;}
+.sector-btn:active{background:#ebf8ff;border-color:#2c5282;}
+
+/* 상태 바 */
+.current-bar{background:#fff;padding:8px 14px;font-size:12px;color:#555;border-bottom:1px solid #eee;display:flex;align-items:center;gap:6px;position:sticky;top:52px;z-index:40;}
+.ci-badge{background:#2c5282;color:#fff;border-radius:7px;padding:2px 9px;font-size:12px;font-weight:600;}
+
+/* 검색 */
+.search-area{padding:10px 14px;background:#fff;border-bottom:1px solid #eee;position:sticky;top:90px;z-index:39;}
+.search-box{display:flex;gap:8px;}
+.search-inp{flex:1;border:1.5px solid #e0e0e0;border-radius:9px;padding:9px 13px;font-size:15px;outline:none;}
+.search-inp:focus{border-color:#2c5282;}
+.scan-btn{background:#2c5282;color:#fff;border:none;border-radius:9px;padding:9px 13px;font-size:18px;cursor:pointer;}
+
+/* 검색결과 */
+.result-list{padding:8px 14px;}
+.result-item{background:#fff;border-radius:10px;margin-bottom:6px;border:1.5px solid transparent;overflow:hidden;}
+.result-item.expanded{border-color:#2c5282;}
+.ri-header{padding:10px 12px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;}
+.ri-header:active{background:#f7fafc;}
+.ri-info .ri-name{font-size:13px;font-weight:600;}
+.ri-info .ri-code{font-size:11px;color:#999;margin-top:1px;}
+.ri-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.ri-stock{font-size:12px;color:#2c5282;font-weight:600;}
+.ri-arrow{font-size:13px;color:#bbb;transition:transform 0.2s;}
+.result-item.expanded .ri-arrow{transform:rotate(180deg);}
+.inline-panel{display:none;padding:10px 12px 13px;border-top:1px solid #e8f0fe;background:#f7fbff;}
+.result-item.expanded .inline-panel{display:block;}
+.ip-row{margin-bottom:8px;}
+.ip-label{font-size:11px;font-weight:600;color:#555;margin-bottom:4px;display:block;}
+.qty-row{display:flex;align-items:center;gap:6px;}
+.qty-btn{background:#2c5282;color:#fff;border:none;border-radius:7px;width:36px;height:36px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.qty-inp{flex:1;border:1.5px solid #e0e0e0;border-radius:8px;padding:8px;font-size:18px;font-weight:700;text-align:center;outline:none;}
+.qty-inp:focus{border-color:#2c5282;}
+.ip-select{width:100%;border:1.5px solid #e0e0e0;border-radius:8px;padding:8px 10px;font-size:14px;outline:none;background:#fff;}
+.ip-inp{width:100%;border:1.5px solid #e0e0e0;border-radius:8px;padding:8px 10px;font-size:14px;outline:none;}
+.ip-save-btn{width:100%;background:#2c5282;color:#fff;border:none;border-radius:9px;padding:11px;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px;}
+.ip-save-btn:active{background:#1a365d;} .ip-save-btn:disabled{background:#b0bec5;}
+
+/* 저장 내역 (수정/삭제 포함) */
+.saved-section{padding:0 14px 8px;}
+.saved-title{font-size:12px;color:#888;font-weight:600;padding:8px 0 5px;}
+.saved-item{background:#fff;border-radius:9px;padding:9px 10px;margin-bottom:6px;border:0.5px solid #e8f0fe;}
+.saved-item-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.si-name{font-size:12px;font-weight:600;flex:1;}
+.si-actions{display:flex;gap:5px;flex-shrink:0;}
+.si-edit-btn{background:#e8f0fe;color:#2c5282;border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;}
+.si-del-btn{background:#fce8e8;color:#c62828;border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;}
+.saved-item-edit{display:none;border-top:1px solid #e8f0fe;margin-top:6px;padding-top:8px;}
+.saved-item-edit.open{display:block;}
+.si-edit-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.si-qty-inp{flex:1;border:1.5px solid #e0e0e0;border-radius:7px;padding:6px;font-size:16px;font-weight:700;text-align:center;outline:none;}
+.si-qty-inp:focus{border-color:#2c5282;}
+.si-save-edit{background:#2c5282;color:#fff;border:none;border-radius:7px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;}
+.si-bottom{display:flex;align-items:center;gap:6px;}
+.si-qty{font-size:12px;color:#2c5282;font-weight:700;}
+.si-badge{font-size:10px;background:#f0fff4;color:#276749;border-radius:5px;padding:1px 6px;}
+
+
+/* 현황 탭 검색창 */
+.live-search-wrap{position:sticky;top:0;z-index:10;background:#f0f4f8;padding:10px 14px 8px;border-bottom:1px solid #e2e8f0;}
+.live-search-box{display:flex;align-items:center;gap:8px;background:#fff;border-radius:11px;padding:9px 13px;border:1.5px solid #c8d8ea;}
+.live-search-box input{flex:1;border:none;outline:none;font-size:14px;color:#333;background:transparent;}
+.live-search-box input::placeholder{color:#aaa;}
+.live-search-clear{font-size:16px;cursor:pointer;color:#aaa;padding:2px 4px;}
+.live-search-count{font-size:12px;color:#888;padding:5px 2px 0;}
+.live-result-item{background:#fff;border-radius:11px;padding:11px 14px;margin-bottom:8px;border:1px solid #e8f0f8;box-shadow:0 1px 4px rgba(44,82,130,0.06);}
+.lri-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.lri-name{font-size:13px;font-weight:700;color:#1a365d;flex:1;margin-right:8px;}
+.lri-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;}
+.lri-row{display:flex;align-items:center;gap:5px;font-size:12px;padding:2px 0;}
+.lri-key{color:#888;min-width:42px;flex-shrink:0;}
+.lri-val{color:#333;font-weight:600;}
+.lri-val.blue{color:#2c5282;}
+
+/* 현황/집계 */
+.live-wrap{padding:14px;}
+.worker-card{background:#fff;border-radius:11px;padding:12px 14px;margin-bottom:9px;cursor:pointer;}
+.wc-top{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.wc-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.wc-name{font-size:14px;font-weight:600;flex:1;}
+.wc-cnt{font-size:13px;color:#2c5282;font-weight:600;}
+.wc-bar-bg{height:5px;background:#f0f0f0;border-radius:3px;overflow:hidden;}
+.wc-bar{height:100%;border-radius:3px;}
+.wc-last{font-size:11px;color:#aaa;margin-top:5px;}
+
+/* 기록 목록 (수정/삭제 포함) */
+.record-list{padding:8px 14px;}
+.record-item{background:#fff;border-radius:9px;padding:11px;margin-bottom:7px;}
+.ri-top2{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.ri-pname{font-size:13px;font-weight:600;}
+.ri-qty2{font-size:13px;font-weight:700;color:#2c5282;}
+.ri-bottom{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;}
+.ri-tag{font-size:10px;background:#f0f4f8;color:#555;border-radius:5px;padding:2px 7px;}
+.ri-edit-area{display:none;border-top:1px solid #f0f0f0;padding-top:8px;margin-top:4px;}
+.ri-edit-area.open{display:block;}
+.ri-edit-row{display:flex;gap:6px;margin-bottom:6px;}
+.ri-edit-inp{flex:1;border:1.5px solid #e0e0e0;border-radius:7px;padding:6px 10px;font-size:14px;outline:none;}
+.ri-edit-inp:focus{border-color:#2c5282;}
+.ri-edit-sel{flex:1;border:1.5px solid #e0e0e0;border-radius:7px;padding:6px 8px;font-size:13px;outline:none;background:#fff;}
+.ri-edit-btns{display:flex;gap:6px;}
+.ri-save-btn{flex:1;background:#2c5282;color:#fff;border:none;border-radius:7px;padding:8px;font-size:13px;font-weight:600;cursor:pointer;}
+.ri-del-btn{background:#fce8e8;color:#c62828;border:none;border-radius:7px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;}
+.ri-action-btns{display:flex;gap:5px;}
+.ri-edit-toggle{background:#e8f0fe;color:#2c5282;border:none;border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer;}
+.ri-del-toggle{background:#fce8e8;color:#c62828;border:none;border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer;}
+
+/* 집계 */
+.summary-wrap{padding:14px;}
+.summary-card{background:#fff;border-radius:11px;padding:13px;margin-bottom:10px;}
+.summary-title{font-size:13px;font-weight:700;color:#333;margin-bottom:10px;}
+.summary-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f5f5f5;font-size:13px;cursor:pointer;}
+.summary-row:last-child{border-bottom:none;}
+.summary-row:active{background:#f7fafc;}
+.summary-row .sr-label{display:flex;align-items:center;gap:6px;}
+.summary-row .sr-right{display:flex;align-items:center;gap:8px;}
+.sr-cnt{font-weight:700;color:#2c5282;}
+.sr-arrow{font-size:11px;color:#bbb;}
+
+
+
+/* 날짜 달력 필터 */
+.date-filter-wrap{background:#fff;border-radius:12px;padding:12px 14px;margin:10px 14px 0;border:1px solid #e2e8f0;box-shadow:0 1px 4px rgba(44,82,130,0.06);}
+.date-filter-title{font-size:12px;font-weight:600;color:#4a5568;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.date-filter-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.date-input{flex:1;min-width:120px;border:1.5px solid #c8d8ea;border-radius:8px;padding:8px 10px;font-size:13px;color:#333;background:#f7fbff;outline:none;}
+.date-input:focus{border-color:#3182ce;}
+.date-sep{font-size:13px;color:#888;flex-shrink:0;}
+.date-filter-btns{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+.dfb{border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer;}
+.dfb-today{background:#ebf8ff;color:#2b6cb0;}
+.dfb-week{background:#e9d8fd;color:#553c9a;}
+.dfb-month{background:#c6f6d5;color:#276749;}
+.dfb-all{background:#f1f5f9;color:#4a5568;}
+.dfb-apply{background:#2c5282;color:#fff;flex:1;}
+.date-result-badge{font-size:12px;color:#718096;margin-top:8px;padding:4px 0;}
+
+/* 집계 품목검색 */
+.summary-search-wrap{position:sticky;top:0;z-index:10;background:#f0f4f8;padding:10px 14px 8px;margin:-0px;border-bottom:1px solid #e2e8f0;}
+.summary-search-box{display:flex;align-items:center;gap:8px;background:#fff;border-radius:11px;padding:9px 13px;border:1.5px solid #c8d8ea;}
+.summary-search-box input{flex:1;border:none;outline:none;font-size:14px;color:#333;background:transparent;}
+.summary-search-box input::placeholder{color:#aaa;}
+.summary-search-box .s-clear{font-size:16px;cursor:pointer;color:#aaa;padding:2px 4px;}
+.search-result-wrap{padding:10px 14px 0;}
+.search-result-item{background:#fff;border-radius:11px;padding:11px 14px;margin-bottom:8px;border:1px solid #e8f0f8;box-shadow:0 1px 4px rgba(44,82,130,0.06);}
+.sri-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.sri-name{font-size:13px;font-weight:700;color:#1a365d;flex:1;margin-right:8px;}
+.sri-status{}
+.sri-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;}
+.sri-row{display:flex;align-items:center;gap:5px;font-size:12px;padding:2px 0;}
+.sri-key{color:#888;min-width:42px;flex-shrink:0;}
+.sri-val{color:#333;font-weight:600;}
+.sri-val.blue{color:#2c5282;}
+.search-no-result{text-align:center;padding:30px 0;color:#aaa;font-size:14px;}
+.search-count{font-size:12px;color:#888;padding:6px 0 4px;margin-bottom:4px;}
+
+/* 집계 상세 */
+.summary-detail{display:none;background:#f7fbff;border-radius:8px;padding:8px;margin-top:4px;margin-bottom:4px;}
+.summary-detail.open{display:block;}
+.sd-item{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;background:#fff;border-radius:7px;margin-bottom:4px;font-size:12px;}
+.sd-name{font-weight:600;flex:1;margin-right:8px;}
+.sd-info{display:flex;gap:6px;align-items:center;flex-shrink:0;}
+.sd-qty{color:#2c5282;font-weight:700;}
+.sd-sector{font-size:10px;color:#888;}
+
+.badge{display:inline-block;font-size:10px;border-radius:5px;padding:2px 6px;font-weight:600;}
+.badge-정상{background:#f0fff4;color:#276749;} .badge-미발견{background:#fff3e0;color:#e65100;}
+.badge-파손{background:#fce4ec;color:#c62828;} .badge-단종{background:#f3e5f5;color:#6a1b9a;}
+.badge-반품필요{background:#fbe9e7;color:#bf360c;} .badge-확인필요{background:#e3f2fd;color:#1565c0;}
+.export-btn{width:100%;background:#276749;color:#fff;border:none;border-radius:11px;padding:13px;font-size:14px;font-weight:600;cursor:pointer;}
+.empty-msg{text-align:center;color:#ccc;font-size:14px;padding:36px 0;}
+.toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%) translateY(16px);background:rgba(0,0,0,0.78);color:#fff;padding:9px 18px;border-radius:18px;font-size:13px;opacity:0;transition:all 0.25s;z-index:300;white-space:nowrap;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.loading-mask{position:fixed;inset:0;background:rgba(255,255,255,0.93);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;}
+.loading-mask.hidden{display:none;}
+.spinner{width:38px;height:38px;border:4px solid #e0e0e0;border-top-color:#2c5282;border-radius:50%;animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.scanner-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:999;flex-direction:column;align-items:center;justify-content:center;}
+.scanner-overlay.active{display:flex;}
+#scanner-video{width:100%;max-width:380px;border-radius:8px;}
+.scanner-close{background:#fff;border:none;border-radius:9px;padding:11px 28px;font-size:14px;font-weight:600;cursor:pointer;margin-top:14px;}
+</style>
+</head>
+<body>
+
+<div class="loading-mask" id="loadingMask">
+  <div class="spinner"></div>
+  <div style="font-size:13px;color:#666;">데이터 로딩중...</div>
+</div>
+<div class="scanner-overlay" id="scannerOverlay">
+  <video id="scanner-video" autoplay playsinline muted></video>
+  <div style="color:#fff;margin-top:10px;font-size:13px;">바코드를 카메라에 비춰주세요</div>
+  <button class="scanner-close" onclick="closeScanner()">닫기</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<!-- 홈 -->
+<div class="app active" id="app-home">
+  <div class="hero">
+    <div class="hero-logo">🔧</div>
+    <div class="hero-brand">공구팩토리</div>
+    <div class="hero-title">재고·매입·매출<br>통합 관리 시스템</div>
+    <div class="date-badge" id="dateText"></div>
+  </div>
+  <div class="notice">
+    <div style="font-size:16px;flex-shrink:0;">📢</div>
+    <div class="notice-text">재고실사 진행 중입니다. 담당 구역 실사 완료 후 집계탭에서 확인하세요.</div>
+  </div>
+  <div class="home-grid">
+    <button class="hcard hcard-blue" onclick="openInventory()">
+      <div class="hcard-badge badge-live">실시간</div>
+      <div class="hcard-icon">📦</div>
+      <div class="hcard-title">재고 실사</div>
+      <div class="hcard-desc">실물 재고 파악<br>바코드 스캔 지원</div>
+      <div class="hcard-bar"></div>
+    </button>
+    <button class="hcard hcard-green" onclick="showToast('준비중입니다')">
+      <div class="hcard-badge badge-ready">준비중</div>
+      <div class="hcard-icon">🏪</div>
+      <div class="hcard-title">재고 현황</div>
+      <div class="hcard-desc">품목별 현재고<br>입출고 이력</div>
+      <div class="hcard-bar"></div>
+    </button>
+    <button class="hcard hcard-amber" onclick="showToast('준비중입니다')">
+      <div class="hcard-badge badge-ready">준비중</div>
+      <div class="hcard-icon">🛒</div>
+      <div class="hcard-title">매입 관리</div>
+      <div class="hcard-desc">발주·입고 관리<br>공급업체별 현황</div>
+      <div class="hcard-bar"></div>
+    </button>
+    <button class="hcard hcard-purple" onclick="showToast('준비중입니다')">
+      <div class="hcard-badge badge-ready">준비중</div>
+      <div class="hcard-icon">💰</div>
+      <div class="hcard-title">매출 관리</div>
+      <div class="hcard-desc">거래처별 매출<br>월별 실적 분석</div>
+      <div class="hcard-bar"></div>
+    </button>
+    <button class="hcard hcard-red" onclick="showToast('준비중입니다')">
+      <div class="hcard-badge badge-ready">준비중</div>
+      <div class="hcard-icon">📊</div>
+      <div class="hcard-title">경영 분석</div>
+      <div class="hcard-desc">매출 추이<br>마진율 분석</div>
+      <div class="hcard-bar"></div>
+    </button>
+    <button class="hcard hcard-gray" onclick="showToast('준비중입니다')">
+      <div class="hcard-badge badge-ready">준비중</div>
+      <div class="hcard-icon">⚙️</div>
+      <div class="hcard-title">설정</div>
+      <div class="hcard-desc">품목 관리<br>직원·권한 설정</div>
+      <div class="hcard-bar"></div>
+    </button>
+  </div>
+</div>
+
+<!-- 재고실사 앱 -->
+<div class="app" id="app-inventory">
+  <!-- 탭1 입력 -->
+  <div class="page active" id="page-input">
+    <div class="hdr">
+      <button class="hdr-back" id="backBtn" onclick="goBack()" style="display:none;">‹</button>
+      <span id="hdrTitle">👷 담당자 선택</span>
+      <button onclick="goHome()" style="margin-left:auto;background:rgba(255,255,255,0.2);border:none;color:#fff;border-radius:7px;padding:4px 10px;font-size:12px;cursor:pointer;">🏠 홈</button>
+    </div>
+    <div class="step active" id="step1">
+      <div style="padding:10px 14px 2px;font-size:12px;color:#888;">본인 이름을 선택하세요</div>
+      <div class="staff-grid">
+        <button class="staff-card" onclick="selectStaff('정부장')"><span class="sc-ico">👔</span><span class="sc-name">정부장</span><span class="sc-role">부장</span></button>
+        <button class="staff-card" onclick="selectStaff('유부장')"><span class="sc-ico">👔</span><span class="sc-name">유부장</span><span class="sc-role">부장</span></button>
+        <button class="staff-card" onclick="selectStaff('조부장')"><span class="sc-ico">👔</span><span class="sc-name">조부장</span><span class="sc-role">부장</span></button>
+        <button class="staff-card" onclick="selectStaff('권과장')"><span class="sc-ico">🧑‍💼</span><span class="sc-name">권과장</span><span class="sc-role">과장</span></button>
+        <button class="staff-card" onclick="selectStaff('김대리')"><span class="sc-ico">🧑‍💼</span><span class="sc-name">김대리</span><span class="sc-role">대리</span></button>
+        <button class="staff-card" onclick="selectStaff('손대리')"><span class="sc-ico">🧑‍💼</span><span class="sc-name">손대리</span><span class="sc-role">대리</span></button>
+        <button class="staff-card" style="grid-column:1/-1;" onclick="selectStaff('정실장')"><span class="sc-ico">👩‍💼</span><span class="sc-name">정실장</span><span class="sc-role">실장</span></button>
+      </div>
+    </div>
+    <div class="step" id="step2">
+      <div style="padding:10px 14px 2px;font-size:12px;color:#888;">작업할 섹터를 선택하세요</div>
+      <div class="sector-grid" id="sectorGrid"></div>
+    </div>
+    <div class="step" id="step3">
+      <div class="current-bar">
+        <span>📍</span><span class="ci-badge" id="ciWorker">-</span><span>›</span><span class="ci-badge" id="ciSector">-</span>
+        <button onclick="goStep(1)" style="margin-left:auto;background:transparent;border:1px solid #ddd;border-radius:6px;padding:2px 8px;font-size:11px;color:#666;cursor:pointer;">변경</button>
+      </div>
+      <div class="search-area">
+        <div id="searchCount" style="font-size:11px;color:#aaa;padding:2px 14px 4px;"></div>
+        <div class="search-box">
+          <input class="search-inp" id="searchInp" type="text" placeholder="품목명 검색..." oninput="doSearch(this.value)" autocomplete="off">
+          <button class="scan-btn" onclick="openScanner('search')">📷</button>
+        </div>
+      </div>
+      <div id="resultList" class="result-list"><div class="empty-msg">품목명을 입력하거나 바코드를 스캔하세요</div></div>
+      <div class="saved-section" id="savedSection" style="display:none;">
+        <div class="saved-title">✅ 방금 입력한 내역</div>
+        <div id="savedList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 탭2 현황 -->
+  <div class="page" id="page-live">
+    <div class="hdr"><span>📊 실시간 현황</span><span id="totalCount" style="margin-left:auto;font-size:13px;font-weight:400;"></span></div>
+    <div class="live-search-wrap">
+      <div class="live-search-box">
+        <span style="font-size:16px;color:#888;">🔍</span>
+        <input type="text" id="liveSearchInp" placeholder="품목명 검색..." oninput="onLiveSearch(this.value)" autocomplete="off" />
+        <span class="live-search-clear" onclick="clearLiveSearch()">✕</span>
+      </div>
+      <div class="live-search-count" id="liveSearchCount"></div>
+    </div>
+    <div id="liveSearchResult" style="display:none;padding:10px 14px 0;"></div>
+    <div class="live-wrap" id="liveWrap"><div class="empty-msg">로딩중...</div></div>
+    <div id="recordDetail" style="display:none;">
+      <div class="hdr" style="position:sticky;top:0;">
+        <button class="hdr-back" onclick="closeRecordDetail()" style="display:flex;">‹</button>
+        <span id="recordDetailTitle">상세</span>
+      </div>
+      <div class="record-list" id="recordListWrap"></div>
+    </div>
+  </div>
+
+  <!-- 탭3 집계 -->
+  <div class="page" id="page-summary">
+    <div class="hdr">📈 집계</div>
+    <div class="date-filter-wrap" id="dateFilterWrap">
+      <div class="date-filter-title">📅 날짜별 조회</div>
+      <div class="date-filter-row">
+        <input type="date" class="date-input" id="dateFrom" onchange="applyDateFilter()">
+        <span class="date-sep">~</span>
+        <input type="date" class="date-input" id="dateTo" onchange="applyDateFilter()">
+      </div>
+      <div class="date-filter-btns">
+        <button class="dfb dfb-today" onclick="setDateFilter('today')">오늘</button>
+        <button class="dfb dfb-week" onclick="setDateFilter('week')">최근 7일</button>
+        <button class="dfb dfb-month" onclick="setDateFilter('month')">이번달</button>
+        <button class="dfb dfb-all" onclick="setDateFilter('all')">전체</button>
+      </div>
+      <div class="date-result-badge" id="dateResultBadge"></div>
+    </div>
+    <div class="summary-search-wrap">
+      <div class="summary-search-box">
+        <span style="font-size:16px;color:#888;">🔍</span>
+        <input type="text" id="summarySearchInp" placeholder="품목명 검색..." oninput="onSummarySearch(this.value)" autocomplete="off" />
+        <span class="s-clear" onclick="clearSummarySearch()">✕</span>
+      </div>
+    </div>
+    <div id="summarySearchResult" style="display:none;"></div>
+    <div class="summary-wrap" id="summaryWrap"><div class="empty-msg">로딩중...</div></div>
+  </div>
+
+  <nav class="nav">
+    <button class="nav-btn active" id="nav-input" onclick="switchTab('input')"><span class="ico">📝</span><span class="nav-label">입력</span></button>
+    <button class="nav-btn" id="nav-live" onclick="switchTab('live')"><span class="ico">📊</span><span class="nav-label">현황</span></button>
+    <button class="nav-btn" id="nav-summary" onclick="switchTab('summary')"><span class="ico">📈</span><span class="nav-label">집계</span></button>
+  </nav>
+</div>
+
+<script>
+const SB_URL='https://qqnsuvcnenzqgupaloqm.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxbnN1dmNuZW56cWd1cGFsb3FtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0NDE0MzYsImV4cCI6MjA5NTAxNzQzNn0.nM9aPjUPqgNwn6_Mp-ubLoUljv5MOIrPllu5aveuoyA';
+const SECTORS=['1F-메인','1F-실리콘','1F-피스','1F-외각','2F-201호','2F-202호','2F-203호','2F-204호','3F-301호','3F-주인세대','3F-옥상및계단','건너편-2층','건너편-지하','건너편-레드툴','건너편-옥탑방','컨테이너-C110','컨테이너-C111','컨테이너-C133','컨테이너-라106','컨테이너-H106','기타'];
+const STAFF_COLORS={정부장:'#4A7FBF',유부장:'#4E8A5A',조부장:'#C47B3E',권과장:'#7A5AA0',김대리:'#B05555',손대리:'#3D8C80',정실장:'#A05580'};
+
+let currentWorker='',currentSector='',allRecords=[],localSaved=[],scanMode='search',scanStream=null,expandedCode=null;
+// 집계 열린 항목 추적
+let openSummaryKey={};
+
+window.addEventListener('DOMContentLoaded',()=>{
+  const d=new Date();
+  const days=['일','월','화','수','목','금','토'];
+  document.getElementById('dateText').textContent=`${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 ${days[d.getDay()]}요일`;
+  buildSectorGrid();
+  setTimeout(loadItemsAsync, 300);
+});
+
+
+window.ITEMS = [];
+window._ITEMS_CHUNKS = 34;
+window._ITEMS_LOADED = 0;
+
+
+// 품목 데이터를 수파베이스에서 fetch
+function loadItemsAsync() {
+  var loadingText = document.getElementById('loadingText');
+  var loadingMask = document.getElementById('loadingMask');
+  if(loadingText) loadingText.textContent = '품목 데이터 로딩중...';
+  
+  var allItems = [];
+  
+  function fetchPage(offset) {
+    var url = 'https://qqnsuvcnenzqgupaloqm.supabase.co/rest/v1/items?select=code,name,unit,price,stock,barcode&limit=1000&offset=' + offset;
+    fetch(url, {
+      headers: {
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxbnN1dmNuZW56cWd1cGFsb3FtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0NDE0MzYsImV4cCI6MjA5NTAxNzQzNn0.nM9aPjUPqgNwn6_Mp-ubLoUljv5MOIrPllu5aveuoyA',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxbnN1dmNuZW56cWd1cGFsb3FtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0NDE0MzYsImV4cCI6MjA5NTAxNzQzNn0.nM9aPjUPqgNwn6_Mp-ubLoUljv5MOIrPllu5aveuoyA',
+        'Accept': 'application/json'
+      }
+    })
+    .then(function(r) {
+      if(!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function(data) {
+      if(data && data.length > 0) {
+        data.forEach(function(x) {
+          allItems.push({c:x.code,n:x.name,u:x.unit||'EA',p:x.price||0,s:x.stock||0,b:x.barcode||''});
+        });
+        if(loadingText) loadingText.textContent = '로딩중... ' + allItems.length + '개';
+        if(data.length === 1000) {
+          fetchPage(offset + 1000);
+        } else {
+          finish();
+        }
+      } else if(allItems.length > 0) {
+        finish();
+      } else {
+        // 수파베이스 데이터 없음 - CDN 폴백
+        loadFromCDN();
+      }
+    })
+    .catch(function(e) {
+      console.error('수파베이스 오류:', e);
+      if(allItems.length > 0) {
+        finish();
+      } else {
+        loadFromCDN();
+      }
+    });
+  }
+  
+  function finish() {
+    window.ITEMS = allItems;
+    console.log('✅ ITEMS 로딩 완료:', allItems.length, '개');
+    if(loadingText) loadingText.textContent = '품목 ' + allItems.length + '개 로딩완료';
+    setTimeout(function() {
+      if(loadingMask) loadingMask.classList.add('hidden');
+      loadLiveData();
+    }, 300);
+  }
+  
+  function loadFromCDN() {
+    if(loadingText) loadingText.textContent = 'CDN에서 로딩중...';
+    fetch('https://cdn.jsdelivr.net/gh/baichoo/gonggu-factory-inventory@main/items.json')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      window.ITEMS = data;
+      if(loadingText) loadingText.textContent = '품목 ' + data.length + '개 완료!';
+      setTimeout(function() {
+        if(loadingMask) loadingMask.classList.add('hidden');
+        loadLiveData();
+      }, 300);
+    })
+    .catch(function(e) {
+      if(loadingText) loadingText.textContent = '로딩 실패 - 새로고침 해주세요';
+    });
+  }
+  
+  fetchPage(0);
+}
+
+
+function waitForItems(){
+  if(window.ITEMS){
+    var m=document.getElementById('loadingMask');
+    if(m)m.classList.add('hidden');
+    loadLiveData();return;
+  }
+  setTimeout(waitForItems,100);
+}
+
+function openInventory(){document.getElementById('app-home').classList.remove('active');document.getElementById('app-inventory').classList.add('active');goStep(1);}
+function goHome(){document.getElementById('app-inventory').classList.remove('active');document.getElementById('app-home').classList.add('active');}
+
+function buildSectorGrid(){
+  document.getElementById('sectorGrid').innerHTML=SECTORS.map(s=>`<button class="sector-btn" onclick="selectSector('${s}')">${s}</button>`).join('');
+}
+
+function goStep(n){
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  document.getElementById('step'+n).classList.add('active');
+  const bb=document.getElementById('backBtn');
+  if(n===1){bb.style.display='none';document.getElementById('hdrTitle').textContent='👷 담당자 선택';}
+  else if(n===2){bb.style.display='flex';document.getElementById('hdrTitle').textContent='📍 섹터 선택';}
+  else if(n===3){bb.style.display='flex';document.getElementById('hdrTitle').textContent='🔍 품목 검색·입력';setTimeout(()=>document.getElementById('searchInp').focus(),100);}
+}
+function goBack(){
+  const steps=['step1','step2','step3'];
+  const idx=steps.indexOf(document.querySelector('.step.active').id);
+  if(idx>0)goStep(idx);
+}
+function selectStaff(name){currentWorker=name;goStep(2);}
+function selectSector(sector){
+  currentSector=sector;
+  document.getElementById('ciWorker').textContent=currentWorker;
+  document.getElementById('ciSector').textContent=currentSector;
+  document.getElementById('searchInp').value='';
+  document.getElementById('resultList').innerHTML='<div class="empty-msg">품목명을 입력하거나 바코드를 스캔하세요</div>';
+  localSaved=[];expandedCode=null;
+  document.getElementById('savedSection').style.display='none';
+  goStep(3);
+}
+
+/* ===== 검색 ===== */
+let searchTimer=null;
+function doSearch(q){
+  clearTimeout(searchTimer);
+  if(!q.trim()){document.getElementById('resultList').innerHTML='<div class="empty-msg">품목명을 입력하거나 바코드를 스캔하세요</div>';return;}
+  searchTimer=setTimeout(()=>{
+    const kw=q.trim().toLowerCase();
+    renderResults(window.ITEMS.filter(x=>x.n.toLowerCase().includes(kw)||x.c.toLowerCase().includes(kw)));
+  },200);
+}
+
+function renderResults(results){
+  if(!results.length){document.getElementById('resultList').innerHTML='<div class="empty-msg">검색 결과 없음</div>';return;}
+  var countHtml = '<div style="padding:6px 14px;font-size:12px;color:#888;">검색결과 '+results.length+'개 (전체 품목 '+(window.ITEMS?window.ITEMS.length:0)+'개)</div>';
+  document.getElementById('resultList').innerHTML=countHtml+results.map(x=>{
+    const sc=x.c.replace(/[^a-zA-Z0-9]/g,'_');
+    return `<div class="result-item${expandedCode===x.c?' expanded':''}" id="ri_${sc}">
+      <div class="ri-header" onclick="toggleItem(${JSON.stringify(x).replace(/"/g,'&quot;')})">
+        <div class="ri-info"><div class="ri-name">${x.n}</div><div class="ri-code">${x.c} · ${x.u}</div></div>
+        <div class="ri-right"><div class="ri-stock">재고 ${x.s}</div><div class="ri-arrow">▾</div></div>
+      </div>
+      <div class="inline-panel">
+        <div class="ip-row"><span class="ip-label">📦 실사 수량</span>
+          <div class="qty-row">
+            <button class="qty-btn" onclick="chQty('qty_${sc}',-1)">−</button>
+            <input class="qty-inp" id="qty_${sc}" type="number" value="0" min="0" inputmode="numeric">
+            <button class="qty-btn" onclick="chQty('qty_${sc}',1)">+</button>
+          </div>
+        </div>
+        <div class="ip-row"><span class="ip-label">📋 상태</span>
+          <select class="ip-select" id="st_${sc}"><option>정상</option><option>미발견</option><option>파손</option><option>단종</option><option>반품필요</option><option>확인필요</option></select>
+        </div>
+        <div class="ip-row"><span class="ip-label">📝 비고 (선택)</span>
+          <input class="ip-inp" id="memo_${sc}" type="text" placeholder="특이사항">
+        </div>
+        <button class="ip-save-btn" id="savebtn_${sc}" onclick="saveItem(${JSON.stringify(x).replace(/"/g,'&quot;')})">💾 저장</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleItem(item){
+  expandedCode=(expandedCode===item.c)?null:item.c;
+  const q=document.getElementById('searchInp').value;
+  if(q.trim()){const kw=q.trim().toLowerCase();renderResults(window.ITEMS.filter(x=>x.n.toLowerCase().includes(kw)||x.c.toLowerCase().includes(kw)));}
+  if(expandedCode){setTimeout(()=>{const el=document.getElementById('ri_'+expandedCode.replace(/[^a-zA-Z0-9]/g,'_'));if(el)el.scrollIntoView({behavior:'smooth',block:'nearest'});},50);}
+}
+function chQty(id,d){const inp=document.getElementById(id);if(inp)inp.value=Math.max(0,(parseInt(inp.value)||0)+d);}
+
+async function saveItem(item){
+  const sc=item.c.replace(/[^a-zA-Z0-9]/g,'_');
+  const btn=document.getElementById('savebtn_'+sc);
+  if(btn){btn.disabled=true;btn.textContent='저장중...';}
+  const qty=parseFloat(document.getElementById('qty_'+sc).value)||0;
+  const status=document.getElementById('st_'+sc).value;
+  const memo=document.getElementById('memo_'+sc).value.trim();
+  try{
+    const res=await fetch(`${SB_URL}/rest/v1/inventory_records`,{
+      method:'POST',
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify({code:item.c,name:item.n,unit:item.u,sys_stock:item.s,actual_qty:qty,sector:currentSector,worker:currentWorker,barcode:item.b||'',status,memo,price:item.p})
+    });
+    if(res.ok||res.status===201){
+      const saved=await res.json();
+      const newId=saved[0]?.id||null;
+      showToast('✅ '+item.n+' 저장!');
+      localSaved.unshift({id:newId,name:item.n,qty,unit:item.u,status,memo});
+      renderSavedList();
+      expandedCode=null;
+      const q=document.getElementById('searchInp').value;
+      if(q.trim()){const kw=q.trim().toLowerCase();renderResults(window.ITEMS.filter(x=>x.n.toLowerCase().includes(kw)||x.c.toLowerCase().includes(kw)));}
+      setTimeout(()=>document.getElementById('searchInp').focus(),100);
+      loadLiveData();
+    }else{showToast('❌ 저장 실패');if(btn){btn.disabled=false;btn.textContent='💾 저장';}}
+  }catch(e){showToast('❌ 네트워크 오류');if(btn){btn.disabled=false;btn.textContent='💾 저장';}}
+}
+
+/* ===== 저장 내역 렌더 (수정/삭제) ===== */
+function renderSavedList(){
+  if(!localSaved.length){document.getElementById('savedSection').style.display='none';return;}
+  document.getElementById('savedSection').style.display='block';
+  document.getElementById('savedList').innerHTML=localSaved.slice(0,10).map((r,i)=>`
+    <div class="saved-item" id="saved_${i}">
+      <div class="saved-item-top">
+        <div class="si-name">${r.name}</div>
+        <div class="si-actions">
+          <button class="si-edit-btn" onclick="toggleSavedEdit(${i})">✏️ 수정</button>
+          <button class="si-del-btn" onclick="deleteSaved(${i},'${r.id}')">🗑️</button>
+        </div>
+      </div>
+      <div class="si-bottom">
+        <span class="si-qty" id="saved_qty_${i}">${r.qty}${r.unit}</span>
+        <span class="si-badge" id="saved_st_${i}">${r.status}</span>
+        ${r.memo?`<span style="font-size:10px;color:#888;">📝${r.memo}</span>`:''}
+      </div>
+      <div class="saved-item-edit" id="saved_edit_${i}">
+        <div class="si-edit-row">
+          <button class="qty-btn" style="width:30px;height:30px;font-size:16px;" onclick="chSavedQty(${i},-1)">−</button>
+          <input class="si-qty-inp" id="sedit_qty_${i}" type="number" value="${r.qty}" min="0" inputmode="numeric">
+          <button class="qty-btn" style="width:30px;height:30px;font-size:16px;" onclick="chSavedQty(${i},1)">+</button>
+          <select class="ip-select" id="sedit_st_${i}" style="max-width:110px;">
+            ${['정상','미발견','파손','단종','반품필요','확인필요'].map(s=>`<option${s===r.status?' selected':''}>${s}</option>`).join('')}
+          </select>
+        </div>
+        <button class="si-save-edit" onclick="updateSaved(${i},'${r.id}')">저장</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleSavedEdit(i){
+  const el=document.getElementById('saved_edit_'+i);
+  el.classList.toggle('open');
+}
+function chSavedQty(i,d){
+  const inp=document.getElementById('sedit_qty_'+i);
+  inp.value=Math.max(0,(parseInt(inp.value)||0)+d);
+}
+async function updateSaved(i,id){
+  if(!id||id==='null'){showToast('ID 없음, 새로고침 후 현황에서 수정하세요');return;}
+  const qty=parseFloat(document.getElementById('sedit_qty_'+i).value)||0;
+  const status=document.getElementById('sedit_st_'+i).value;
+  try{
+    const res=await fetch(`${SB_URL}/rest/v1/inventory_records?id=eq.${id}`,{
+      method:'PATCH',
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify({actual_qty:qty,status})
+    });
+    if(res.ok){
+      localSaved[i].qty=qty;localSaved[i].status=status;
+      document.getElementById('saved_qty_'+i).textContent=qty+localSaved[i].unit;
+      document.getElementById('saved_st_'+i).textContent=status;
+      document.getElementById('saved_edit_'+i).classList.remove('open');
+      showToast('✅ 수정 완료');loadLiveData();
+    }else showToast('❌ 수정 실패');
+  }catch(e){showToast('❌ 네트워크 오류');}
+}
+async function deleteSaved(i,id){
+  if(!confirm('삭제할까요?'))return;
+  if(id&&id!=='null'){
+    try{
+      await fetch(`${SB_URL}/rest/v1/inventory_records?id=eq.${id}`,{
+        method:'DELETE',
+        headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+      });
+    }catch(e){}
+  }
+  localSaved.splice(i,1);
+  renderSavedList();
+  showToast('🗑️ 삭제됨');
+  loadLiveData();
+}
+
+/* ===== 탭 ===== */
+function switchTab(tab){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+tab).classList.add('active');
+  document.getElementById('nav-'+tab).classList.add('active');
+  if(tab==='live')renderLive();
+  if(tab==='summary')renderSummary();
+}
+
+/* ===== 실시간 ===== */
+async function loadLiveData(){
+  try{
+    const res=await fetch(`${SB_URL}/rest/v1/inventory_records?select=*&order=created_at.desc&limit=2000`,{
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+    });
+    if(res.ok){allRecords=await res.json();document.getElementById('totalCount').textContent='총 '+allRecords.length+'건';}
+  }catch(e){}
+}
+
+
+/* ===== 현황 탭 품목 검색 ===== */
+function onLiveSearch(val){
+  const q = val.trim();
+  const resultEl = document.getElementById('liveSearchResult');
+  const countEl  = document.getElementById('liveSearchCount');
+  const wrapEl   = document.getElementById('liveWrap');
+
+  if(!q){
+    resultEl.style.display='none';
+    wrapEl.style.display='';
+    countEl.textContent='';
+    return;
+  }
+  wrapEl.style.display='none';
+  resultEl.style.display='';
+
+  if(!allRecords.length){
+    resultEl.innerHTML='<div class="empty-msg">저장된 데이터가 없습니다</div>';
+    return;
+  }
+
+  const matched = allRecords.filter(r =>
+    r.name && r.name.replace(/^\./, '').toLowerCase().includes(q.toLowerCase())
+  );
+
+  countEl.textContent = matched.length ? matched.length+'건 검색됨' : '';
+
+  if(!matched.length){
+    resultEl.innerHTML='<div style="text-align:center;padding:30px 0;color:#aaa;font-size:14px;">검색 결과가 없습니다</div>';
+    return;
+  }
+
+  const statusColor={정상:'#2d6a4f',파손:'#c0392b',확인필요:'#b45309',미발견:'#7f8c8d',단종:'#6b7280',반품필요:'#7b2d8b'};
+  const statusBg   ={정상:'#d4edda',파손:'#fde8e8',확인필요:'#fef3c7',미발견:'#f1f5f9',단종:'#f1f5f9',반품필요:'#f3e8ff'};
+
+  resultEl.innerHTML = matched.map(r => {
+    const dt = r.created_at ? new Date(r.created_at) : null;
+    const dateStr = dt
+      ? `${dt.getMonth()+1}/${dt.getDate()} ${dt.getHours().toString().padStart(2,'0')}:${dt.getMinutes().toString().padStart(2,'0')}`
+      : '—';
+    const nm  = r.name ? r.name.replace(/^\./, '') : r.name;
+    const sc  = statusColor[r.status] || '#555';
+    const sb  = statusBg[r.status]   || '#f5f5f5';
+    return `<div class="live-result-item">
+      <div class="lri-header">
+        <div class="lri-name">${nm}</div>
+        <span style="background:${sb};color:${sc};font-size:11px;padding:3px 8px;border-radius:6px;font-weight:700;">${r.status}</span>
+      </div>
+      <div class="lri-grid">
+        <div class="lri-row"><span class="lri-key">담당자</span><span class="lri-val">${r.worker||'—'}</span></div>
+        <div class="lri-row"><span class="lri-key">수량</span><span class="lri-val blue">${r.actual_qty}${r.unit||''}</span></div>
+        <div class="lri-row"><span class="lri-key">섹터</span><span class="lri-val">${r.sector||'—'}</span></div>
+        <div class="lri-row"><span class="lri-key">날짜</span><span class="lri-val">${dateStr}</span></div>
+        ${r.memo ? `<div class="lri-row" style="grid-column:1/-1;"><span class="lri-key">비고</span><span class="lri-val" style="color:#555;font-weight:400;">${r.memo}</span></div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function clearLiveSearch(){
+  const inp = document.getElementById('liveSearchInp');
+  if(inp) inp.value = '';
+  document.getElementById('liveSearchResult').style.display = 'none';
+  document.getElementById('liveSearchCount').textContent = '';
+  document.getElementById('liveWrap').style.display = '';
+}
+
+function renderLive(){
+  const wrap=document.getElementById('liveWrap');
+  const workers=Object.keys(STAFF_COLORS);
+  const maxCnt=Math.max(...workers.map(w=>allRecords.filter(r=>r.worker===w).length),1);
+  wrap.innerHTML=workers.map(w=>{
+    const recs=allRecords.filter(r=>r.worker===w);
+    const cnt=recs.length,pct=Math.round(cnt/maxCnt*100);
+    const last=recs[0]?new Date(recs[0].created_at).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}):'-';
+    return `<div class="worker-card" onclick="showRecords('${w}')">
+      <div class="wc-top"><div class="wc-dot" style="background:${STAFF_COLORS[w]}"></div><div class="wc-name">${w}</div><div class="wc-cnt">${cnt}건</div></div>
+      <div class="wc-bar-bg"><div class="wc-bar" style="width:${pct}%;background:${STAFF_COLORS[w]};"></div></div>
+      <div class="wc-last">마지막: ${last}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('totalCount').textContent='총 '+allRecords.length+'건';
+}
+
+function showRecords(worker){
+  const recs=allRecords.filter(r=>r.worker===worker);
+  document.getElementById('recordDetailTitle').textContent=worker+' ('+recs.length+'건)';
+  document.getElementById('recordListWrap').innerHTML=recs.length?recs.map(r=>`
+    <div class="record-item" id="rec_${r.id}">
+      <div class="ri-top2">
+        <div class="ri-pname">${r.name}</div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div class="ri-qty2" id="recqty_${r.id}">${r.actual_qty}${r.unit}</div>
+          <div class="ri-action-btns">
+            <button class="ri-edit-toggle" onclick="toggleRecEdit('${r.id}',${r.actual_qty},'${r.status}')">✏️</button>
+            <button class="ri-del-toggle" onclick="deleteRecord('${r.id}')">🗑️</button>
+          </div>
+        </div>
+      </div>
+      <div class="ri-bottom">
+        <span class="ri-tag">📍${r.sector}</span>
+        <span class="badge badge-${r.status}" id="recst_${r.id}">${r.status}</span>
+        ${r.memo?`<span class="ri-tag">📝${r.memo}</span>`:''}
+      </div>
+      <div class="ri-edit-area" id="recea_${r.id}">
+        <div class="ri-edit-row">
+          <input class="ri-edit-inp" id="recedit_qty_${r.id}" type="number" value="${r.actual_qty}" min="0" inputmode="numeric" placeholder="수량">
+          <select class="ri-edit-sel" id="recedit_st_${r.id}">
+            ${['정상','미발견','파손','단종','반품필요','확인필요'].map(s=>`<option${s===r.status?' selected':''}>${s}</option>`).join('')}
+          </select>
+        </div>
+        <div class="ri-edit-btns">
+          <button class="ri-save-btn" onclick="updateRecord('${r.id}','${r.unit}')">저장</button>
+          <button class="ri-del-btn" onclick="deleteRecord('${r.id}')">삭제</button>
+        </div>
+      </div>
+    </div>`).join(''):'<div class="empty-msg">입력 내역 없음</div>';
+  document.getElementById('liveWrap').style.display='none';
+  document.getElementById('recordDetail').style.display='block';
+}
+
+function toggleRecEdit(id,qty,status){
+  const el=document.getElementById('recea_'+id);
+  el.classList.toggle('open');
+}
+async function updateRecord(id,unit){
+  const qty=parseFloat(document.getElementById('recedit_qty_'+id).value)||0;
+  const status=document.getElementById('recedit_st_'+id).value;
+  try{
+    const res=await fetch(`${SB_URL}/rest/v1/inventory_records?id=eq.${id}`,{
+      method:'PATCH',
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify({actual_qty:qty,status})
+    });
+    if(res.ok){
+      document.getElementById('recqty_'+id).textContent=qty+unit;
+      document.getElementById('recst_'+id).textContent=status;
+      document.getElementById('recst_'+id).className='badge badge-'+status;
+      document.getElementById('recea_'+id).classList.remove('open');
+      showToast('✅ 수정 완료');
+      // allRecords 업데이트
+      const rec=allRecords.find(r=>r.id===id);
+      if(rec){rec.actual_qty=qty;rec.status=status;}
+      renderSummary();
+    }else showToast('❌ 수정 실패');
+  }catch(e){showToast('❌ 네트워크 오류');}
+}
+async function deleteRecord(id){
+  if(!confirm('삭제할까요?'))return;
+  try{
+    const res=await fetch(`${SB_URL}/rest/v1/inventory_records?id=eq.${id}`,{
+      method:'DELETE',
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+    });
+    if(res.ok){
+      document.getElementById('rec_'+id)?.remove();
+      allRecords=allRecords.filter(r=>r.id!==id);
+      document.getElementById('totalCount').textContent='총 '+allRecords.length+'건';
+      showToast('🗑️ 삭제됨');
+      renderSummary();
+    }else showToast('❌ 삭제 실패');
+  }catch(e){showToast('❌ 네트워크 오류');}
+}
+function closeRecordDetail(){
+  document.getElementById('liveWrap').style.display='block';
+  document.getElementById('recordDetail').style.display='none';
+}
+
+/* ===== 집계 (클릭하면 상세 펼쳐짐) ===== */
+
+/* ===== 날짜 필터 ===== */
+let filteredRecords = [];
+
+function getToday(){ return new Date().toISOString().split('T')[0]; }
+function getDateBefore(days){
+  const d=new Date(); d.setDate(d.getDate()-days);
+  return d.toISOString().split('T')[0];
+}
+function getMonthStart(){
+  const d=new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01`;
+}
+
+function setDateFilter(type){
+  const from=document.getElementById('dateFrom');
+  const to=document.getElementById('dateTo');
+  const today=getToday();
+  if(type==='today'){ from.value=today; to.value=today; }
+  else if(type==='week'){ from.value=getDateBefore(6); to.value=today; }
+  else if(type==='month'){ from.value=getMonthStart(); to.value=today; }
+  else if(type==='all'){ from.value=''; to.value=''; }
+  applyDateFilter();
+}
+
+function applyDateFilter(){
+  const from=document.getElementById('dateFrom').value;
+  const to=document.getElementById('dateTo').value;
+  const badge=document.getElementById('dateResultBadge');
+
+  if(!from && !to){
+    filteredRecords=[...allRecords];
+    badge.textContent='';
+  } else {
+    const f=from?new Date(from+' 00:00:00'):null;
+    const t=to?new Date(to+' 23:59:59'):null;
+    filteredRecords=allRecords.filter(r=>{
+      if(!r.created_at) return false;
+      const d=new Date(r.created_at);
+      if(f && d<f) return false;
+      if(t && d>t) return false;
+      return true;
+    });
+    const fromStr=from||'처음';
+    const toStr=to||'오늘';
+    badge.textContent=`📋 ${fromStr} ~ ${toStr} : ${filteredRecords.length}건`;
+  }
+
+  // 품목 검색창 초기화
+  const inp=document.getElementById('summarySearchInp');
+  if(inp && inp.value) onSummarySearch(inp.value);
+  else renderSummaryWithData(filteredRecords);
+}
+
+function renderSummaryWithData(records){
+  const wrap=document.getElementById('summaryWrap');
+  if(!records.length){wrap.innerHTML='<div class="empty-msg">해당 날짜에 데이터가 없습니다</div>';return;}
+
+  const byWorker={},bySector={},byStatus={},byDate={};
+  records.forEach(r=>{
+    byWorker[r.worker]=(byWorker[r.worker]||[]);byWorker[r.worker].push(r);
+    bySector[r.sector]=(bySector[r.sector]||[]);bySector[r.sector].push(r);
+    byStatus[r.status]=(byStatus[r.status]||[]);byStatus[r.status].push(r);
+    const dateKey=r.created_at?new Date(r.created_at).toLocaleDateString('ko-KR',{month:'2-digit',day:'2-digit'}):'미정';
+    byDate[dateKey]=(byDate[dateKey]||[]);byDate[dateKey].push(r);
+  });
+
+  function makeRows(obj,type){
+    return Object.entries(obj).sort((a,b)=>b[1].length-a[1].length).map(([k,recs])=>{
+      const key=type+'_'+k;
+      const isOpen=openSummaryKey[key];
+      const detailHtml=recs.map(r=>{
+        const dt=r.created_at?new Date(r.created_at):null;
+        const dateStr=dt?`${dt.getMonth()+1}/${dt.getDate()} ${dt.getHours().toString().padStart(2,'0')}:${dt.getMinutes().toString().padStart(2,'0')}`:'—';
+        return `<div class="sd-item">
+          <div class="sd-name">${r.name}</div>
+          <div class="sd-info">
+            <span class="sd-qty">${r.actual_qty}${r.unit}</span>
+            <span class="sd-sector">${type==='worker'?r.sector:type==='sector'?r.worker:r.sector}</span>
+            <span style="font-size:10px;color:#999;">${dateStr}</span>
+            <span class="badge badge-${r.status}">${r.status}</span>
+          </div>
+        </div>`;
+      }).join('');
+      return `
+        <div class="summary-row" onclick="toggleSummaryDetail('${key}')">
+          <span class="sr-label">${k}</span>
+          <span class="sr-right"><span class="sr-cnt">${recs.length}건</span><span class="sr-arrow">${isOpen?'▲':'▼'}</span></span>
+        </div>
+        <div class="summary-detail${isOpen?' open':''}" id="sd_${key}">${detailHtml}</div>`;
+    }).join('');
+  }
+
+  // 날짜별 카드
+  const dateEntries=Object.entries(byDate).sort((a,b)=>b[0].localeCompare(a[0]));
+  const dateRows=dateEntries.map(([k,recs])=>{
+    const key='date_'+k;
+    const isOpen=openSummaryKey[key];
+    const detailHtml=recs.map(r=>`
+      <div class="sd-item">
+        <div class="sd-name">${r.name}</div>
+        <div class="sd-info">
+          <span class="sd-qty">${r.actual_qty}${r.unit}</span>
+          <span class="sd-sector">${r.sector}</span>
+          <span class="sd-sector">${r.worker}</span>
+          <span class="badge badge-${r.status}">${r.status}</span>
+        </div>
+      </div>`).join('');
+    return `
+      <div class="summary-row" onclick="toggleSummaryDetail('${key}')">
+        <span class="sr-label">📅 ${k}</span>
+        <span class="sr-right"><span class="sr-cnt">${recs.length}건</span><span class="sr-arrow">${isOpen?'▲':'▼'}</span></span>
+      </div>
+      <div class="summary-detail${isOpen?' open':''}" id="sd_${key}">${detailHtml}</div>`;
+  }).join('');
+
+  wrap.innerHTML=`
+    <div class="summary-card">
+      <div class="summary-title">📅 날짜별 <span style="font-size:11px;color:#aaa;font-weight:400;">클릭하면 상세 확인</span></div>
+      ${dateRows}
+    </div>
+    <div class="summary-card">
+      <div class="summary-title">👤 담당자별</div>
+      ${makeRows(byWorker,'worker')}
+    </div>
+    <div class="summary-card">
+      <div class="summary-title">📍 섹터별</div>
+      ${makeRows(bySector,'sector')}
+    </div>
+    <div class="summary-card">
+      <div class="summary-title">📋 상태별</div>
+      ${makeRows(byStatus,'status')}
+    </div>
+    <button class="export-btn" onclick="exportCSV()">📥 CSV 내보내기</button>
+    <button onclick="loadLiveData().then(()=>{applyDateFilter();showToast('새로고침 완료');})" style="width:100%;background:#2c5282;color:#fff;border:none;border-radius:11px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;margin-top:8px;">🔄 새로고침</button>
+  `;
+}
+
+function renderSummary(){
+  filteredRecords=[...allRecords];
+  // 날짜 필터 초기값: 오늘
+  const today=new Date().toISOString().split('T')[0];
+  const fromEl=document.getElementById('dateFrom');
+  const toEl=document.getElementById('dateTo');
+  if(fromEl && !fromEl.value){ fromEl.value=today; toEl.value=today; }
+  applyDateFilter();
+}
+
+
+/* ===== 집계 품목 검색 ===== */
+function onSummarySearch(val){
+  const q=val.trim();
+  const resultEl=document.getElementById('summarySearchResult');
+  const wrapEl=document.getElementById('summaryWrap');
+  if(!q){
+    resultEl.style.display='none';
+    wrapEl.style.display='';
+    return;
+  }
+  wrapEl.style.display='none';
+  resultEl.style.display='';
+  if(!allRecords.length){resultEl.innerHTML='<div class="search-no-result">저장된 데이터가 없습니다</div>';return;}
+  const matched=(filteredRecords.length?filteredRecords:allRecords).filter(r=>r.name&&r.name.replace(/^\./,'').toLowerCase().includes(q.toLowerCase()));
+  if(!matched.length){resultEl.innerHTML='<div class="search-result-wrap"><div class="search-no-result">검색 결과가 없습니다</div></div>';return;}
+  const statusColor={정상:'#2d6a4f',파손:'#c0392b',확인필요:'#b45309',미발견:'#7f8c8d',단종:'#6b7280',반품필요:'#7b2d8b'};
+  const statusBg={정상:'#d4edda',파손:'#fde8e8',확인필요:'#fef3c7',미발견:'#f1f5f9',단종:'#f1f5f9',반품필요:'#f3e8ff'};
+  const fmt=(r)=>{
+    const dt=r.created_at?new Date(r.created_at):null;
+    const dateStr=dt?`${dt.getMonth()+1}/${dt.getDate()} ${dt.getHours().toString().padStart(2,'0')}:${dt.getMinutes().toString().padStart(2,'0')}`:'—';
+    const sc=statusColor[r.status]||'#555';
+    const sb=statusBg[r.status]||'#f5f5f5';
+    const nm=r.name?r.name.replace(/^\./,''):r.name;
+    return `<div class="search-result-item">
+      <div class="sri-header">
+        <div class="sri-name">${nm}</div>
+        <span class="sri-status badge badge-${r.status}" style="background:${sb};color:${sc};font-size:11px;padding:3px 8px;border-radius:6px;font-weight:700;">${r.status}</span>
+      </div>
+      <div class="sri-grid">
+        <div class="sri-row"><span class="sri-key">담당자</span><span class="sri-val">${r.worker||'—'}</span></div>
+        <div class="sri-row"><span class="sri-key">수량</span><span class="sri-val blue">${r.actual_qty}${r.unit||''}</span></div>
+        <div class="sri-row"><span class="sri-key">섹터</span><span class="sri-val">${r.sector||'—'}</span></div>
+        <div class="sri-row"><span class="sri-key">날짜</span><span class="sri-val">${dateStr}</span></div>
+        ${r.memo?`<div class="sri-row" style="grid-column:1/-1;"><span class="sri-key">비고</span><span class="sri-val" style="color:#555;font-weight:400;">${r.memo}</span></div>`:''}
+      </div>
+    </div>`;
+  };
+  resultEl.innerHTML=`<div class="search-result-wrap"><div class="search-count">${matched.length}건 검색됨</div>${matched.map(fmt).join('')}</div>`;
+}
+
+function clearSummarySearch(){
+  const inp=document.getElementById('summarySearchInp');
+  if(inp) inp.value='';
+  document.getElementById('summarySearchResult').style.display='none';
+  document.getElementById('summaryWrap').style.display='';
+}
+
+function toggleSummaryDetail(key){
+  openSummaryKey[key]=!openSummaryKey[key];
+  renderSummary();
+}
+
+function exportCSV(){
+  const headers=['코드','품목명','단위','시스템재고','실사수량','섹터','담당자','상태','비고','기존바코드','입력일시'];
+  const rows=allRecords.map(r=>[r.code,r.name,r.unit,r.sys_stock,r.actual_qty,r.sector,r.worker,r.status,r.memo||'',r.barcode||'',new Date(r.created_at).toLocaleString('ko-KR')]);
+  const csv=[headers,...rows].map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`재고실사_${new Date().toLocaleDateString('ko-KR').replace(/\./g,'').replace(/ /g,'')}.csv`;a.click();
+}
+
+/* ===== 스캐너 ===== */
+async function openScanner(mode='search'){
+  scanMode=mode;
+  document.getElementById('scannerOverlay').classList.add('active');
+  try{
+    scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+    const video=document.getElementById('scanner-video');
+    video.srcObject=scanStream;
+    if('BarcodeDetector' in window){
+      const detector=new BarcodeDetector({formats:['ean_13','ean_8','code_128','code_39','qr_code','upc_a','upc_e']});
+      const scan=async()=>{if(!scanStream)return;try{const bc=await detector.detect(video);if(bc.length>0){handleBarcode(bc[0].rawValue);return;}}catch(e){}requestAnimationFrame(scan);};
+      video.addEventListener('play',()=>requestAnimationFrame(scan),{once:true});
+    }else{showToast('바코드 스캔 미지원');closeScanner();}
+  }catch(e){showToast('카메라 접근 불가');closeScanner();}
+}
+function handleBarcode(code){
+  closeScanner();
+  const found=window.ITEMS?window.ITEMS.filter(x=>x.b===code):[];
+  if(found.length===1){document.getElementById('searchInp').value=found[0].n;expandedCode=found[0].c;renderResults(found);}
+  else{document.getElementById('searchInp').value=code;doSearch(code);}
+  showToast('스캔: '+code);
+}
+function closeScanner(){
+  if(scanStream){scanStream.getTracks().forEach(t=>t.stop());scanStream=null;}
+  document.getElementById('scannerOverlay').classList.remove('active');
+}
+
+let toastTimer=null;
+function showToast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2200);
+}
+</script>
+<script>
+// 품목 데이터는 GitHub에서 동적 로딩
+>
